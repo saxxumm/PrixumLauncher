@@ -77,3 +77,6 @@ ecm_add_test(NovaTheme_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJ
     TEST_NAME NovaTheme)
 # needs a QApplication for palettes and fonts, CI has no display
 set_tests_properties(NovaTheme PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+ecm_add_test(NewsEntry_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Xml
+    TEST_NAME NewsEntry)
