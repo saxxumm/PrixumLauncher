@@ -36,6 +36,7 @@
 #include "NewsChecker.h"
 
 #include <QByteArray>
+#include <QCryptographicHash>
 #include <QDomDocument>
 
 #include <QDebug>
@@ -52,7 +53,9 @@ void NewsChecker::reloadNews()
         return;
     }
 
-    m_entry = APPLICATION->metacache()->resolveEntry("feed", "feed.xml");
+    // named after the feed URL, so a feed cached under another URL (e.g. data migrated from Prism Launcher) is never shown
+    const auto cacheName = QCryptographicHash::hash(m_feedUrl.toUtf8(), QCryptographicHash::Sha1).toHex() + ".xml";
+    m_entry = APPLICATION->metacache()->resolveEntry("feed", cacheName);
 
     qDebug() << "Reloading news.";
 
