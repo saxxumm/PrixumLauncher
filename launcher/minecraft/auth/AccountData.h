@@ -88,7 +88,7 @@ struct MinecraftProfile {
     Validity validity = Validity::None;
 };
 
-enum class AccountType { MSA, Offline };
+enum class AccountType { MSA, Offline, ElyBy };
 
 enum class AccountState { Unchecked, Offline, Working, Online, Disabled, Errored, Expired, Gone };
 
@@ -121,4 +121,6 @@ struct AccountData {
     QString errorString;
     QNetworkReply::NetworkError networkError = QNetworkReply::NoError;
     AccountState accountState = AccountState::Unchecked;
+    //! Ely.by asked for a two-factor code during the last login
+    bool twoFactorRequired = false;
 };

@@ -291,6 +291,8 @@ bool AccountData::resumeStateFromV3(QJsonObject data)
         type = AccountType::MSA;
     } else if (typeS == "Offline") {
         type = AccountType::Offline;
+    } else if (typeS == "ElyBy") {
+        type = AccountType::ElyBy;
     } else {
         qWarning() << "Failed to parse account data: type is not recognized.";
         return false;
@@ -312,7 +314,8 @@ bool AccountData::resumeStateFromV3(QJsonObject data)
         yggdrasilToken.token = "0";
 
     minecraftProfile = profileFromJSONV3(data, "profile");
-    if (!entitlementFromJSONV3(data, minecraftEntitlement)) {
+    // Ely.by accounts never own Minecraft, the license comes from a Microsoft account
+    if (!entitlementFromJSONV3(data, minecraftEntitlement) && type != AccountType::ElyBy) {
         if (minecraftProfile.validity != Validity::None) {
             minecraftEntitlement.canPlayMinecraft = true;
             minecraftEntitlement.ownsMinecraft = true;
@@ -335,6 +338,8 @@ QJsonObject AccountData::saveState() const
         tokenToJSONV3(output, mojangservicesToken, "xrp-mc");
     } else if (type == AccountType::Offline) {
         output["type"] = "Offline";
+    } else if (type == AccountType::ElyBy) {
+        output["type"] = "ElyBy";
     }
 
     tokenToJSONV3(output, yggdrasilToken, "ygg");

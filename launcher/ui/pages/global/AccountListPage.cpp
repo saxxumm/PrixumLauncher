@@ -46,6 +46,7 @@
 
 #include "ui/dialogs/ChooseOfflineNameDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
+#include "ui/dialogs/ElyByLoginDialog.h"
 #include "ui/dialogs/MSALoginDialog.h"
 
 #include "Application.h"
@@ -162,6 +163,25 @@ void AccountListPage::on_actionAddOffline_triggered()
     }
 }
 
+void AccountListPage::on_actionAddElyBy_triggered()
+{
+    // same rule as for offline accounts, playing needs a license
+    if (!m_accounts->anyAccountIsValid()) {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("You must add a Microsoft account that owns Minecraft before you can add an Ely.by account."
+                                "<br><br>"
+                                "If you have lost your account you can contact Microsoft for support."));
+        return;
+    }
+
+    if (auto account = ElyByLoginDialog::newAccount(this)) {
+        m_accounts->addAccount(account);
+        if (m_accounts->count() == 1) {
+            m_accounts->setDefaultAccount(account);
+        }
+    }
+}
+
 void AccountListPage::on_actionRemove_triggered()
 {
     auto response = CustomMessageBox::selectable(this, tr("Remove account?"), tr("Do you really want to delete this account?"),
@@ -183,6 +203,11 @@ void AccountListPage::on_actionRefresh_triggered()
     if (selection.size() > 0) {
         QModelIndex selected = selection.first();
         MinecraftAccountPtr account = selected.data(AccountList::PointerRole).value<MinecraftAccountPtr>();
+        // an ended Ely.by session can't be refreshed, it needs the password again
+        if (account->accountType() == AccountType::ElyBy && account->accessToken().isEmpty()) {
+            reloginElyBy(account);
+            return;
+        }
         m_accounts->requestRefresh(account->internalId());
     }
 }
@@ -209,6 +234,7 @@ void AccountListPage::updateButtonStates()
     bool hasSelection = !selection.empty();
     bool accountIsReady = false;
     bool accountIsOnline = false;
+    bool accountHasSkins = false;
     bool accountCanMoveUp = false;
     bool accountCanMoveDown = false;
     if (hasSelection) {
@@ -216,6 +242,8 @@ void AccountListPage::updateButtonStates()
         MinecraftAccountPtr account = selected.data(AccountList::PointerRole).value<MinecraftAccountPtr>();
         accountIsReady = !account->isActive();
         accountIsOnline = account->accountType() != AccountType::Offline;
+        // Ely.by skins are managed on ely.by
+        accountHasSkins = account->accountType() == AccountType::MSA;
 
         accountCanMoveUp = selected.row() > 0;
         int indexOfLast = m_accounts->count() - 1;
@@ -223,7 +251,7 @@ void AccountListPage::updateButtonStates()
     }
     ui->actionRemove->setEnabled(accountIsReady);
     ui->actionSetDefault->setEnabled(accountIsReady);
-    ui->actionManageSkins->setEnabled(accountIsReady && accountIsOnline);
+    ui->actionManageSkins->setEnabled(accountIsReady && accountHasSkins);
     ui->actionRefresh->setEnabled(accountIsReady && accountIsOnline);
 
     if (m_accounts->defaultAccount().get() == nullptr) {
@@ -264,5 +292,19 @@ void AccountListPage::on_actionMoveDown_triggered()
     if (selection.size() > 0) {
         QModelIndex selected = selection.first();
         m_accounts->moveAccount(selected, 1);
+    }
+}
+
+void AccountListPage::reloginElyBy(const MinecraftAccountPtr& account)
+{
+    auto newAccount = ElyByLoginDialog::newAccount(this, account->accountData()->yggdrasilToken.extra["userName"].toString());
+    if (!newAccount) {
+        return;
+    }
+    const bool isDefault = m_accounts->defaultAccount() == account;
+    m_accounts->removeAccount(m_accounts->index(m_accounts->findAccountByProfileId(account->profileId())));
+    m_accounts->addAccount(newAccount);
+    if (isDefault) {
+        m_accounts->setDefaultAccount(newAccount);
     }
 }

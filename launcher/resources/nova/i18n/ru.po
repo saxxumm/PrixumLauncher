@@ -616,3 +616,95 @@ msgstr "Всего в игре: %1"
 msgctxt "MainWindow"
 msgid "Total playtime: 0s"
 msgstr "Всего в игре: 0с"
+
+msgctxt "AccountListPage"
+msgid "Add &Ely.by"
+msgstr "Добавить &Ely.by"
+
+msgctxt "AccountListPage"
+msgid "Log in with an Ely.by account for servers that use Ely.by and its skins"
+msgstr "Войти через Ely.by для серверов с авторизацией Ely.by и скинов Ely.by"
+
+msgctxt "AccountListPage"
+msgid "You must add a Microsoft account that owns Minecraft before you can add an Ely.by account.<br><br>If you have lost your account you can contact Microsoft for support."
+msgstr "Чтобы добавить аккаунт Ely.by, сначала добавьте аккаунт Microsoft с купленным Minecraft.<br><br>Если вы потеряли доступ к аккаунту, обратитесь в поддержку Microsoft."
+
+msgctxt "ElyByLoginDialog"
+msgid "Add Ely.by account"
+msgstr "Добавить аккаунт Ely.by"
+
+msgctxt "ElyByLoginDialog"
+msgid "Log in with your <a href=\"https://ely.by\">Ely.by</a> account to play on servers that use Ely.by and to show your Ely.by skin. The password goes to Ely.by only and isn't saved.<br><br>No account yet? <a href=\"https://account.ely.by/register\">Create one on ely.by</a>."
+msgstr "Войдите через аккаунт <a href=\"https://ely.by\">Ely.by</a>, чтобы играть на серверах с авторизацией Ely.by и показывать свой скин Ely.by. Пароль отправляется только на Ely.by и не сохраняется.<br><br>Ещё нет аккаунта? <a href=\"https://account.ely.by/register\">Зарегистрируйтесь на ely.by</a>."
+
+msgctxt "ElyByLoginDialog"
+msgid "&Nickname or e-mail:"
+msgstr "&Ник или e-mail:"
+
+msgctxt "ElyByLoginDialog"
+msgid "&Password:"
+msgstr "&Пароль:"
+
+msgctxt "ElyByLoginDialog"
+msgid "Two-factor &code:"
+msgstr "&Код 2FA:"
+
+msgctxt "ElyByLoginDialog"
+msgid "6 digits from your authenticator app"
+msgstr "6 цифр из приложения-аутентификатора"
+
+msgctxt "ElyByLoginDialog"
+msgid "&Log in"
+msgstr "&Войти"
+
+msgctxt "ElyByLoginDialog"
+msgid "Logging in to Ely.by..."
+msgstr "Вход в Ely.by..."
+
+msgctxt "ElyByLoginDialog"
+msgid "This account is protected with two-factor authentication. Enter the code from your authenticator app."
+msgstr "Аккаунт защищён двухфакторной аутентификацией. Введите код из приложения-аутентификатора."
+
+msgctxt "ElyByStep"
+msgid "Logging in to Ely.by"
+msgstr "Вход в Ely.by"
+
+msgctxt "ElyByStep"
+msgid "Refreshing the Ely.by session"
+msgstr "Обновление сессии Ely.by"
+
+msgctxt "ElyByStep"
+msgid "The Ely.by session has ended, log in again."
+msgstr "Сессия Ely.by закончилась, войдите снова."
+
+msgctxt "ElyByStep"
+msgid "Couldn't reach Ely.by: %1"
+msgstr "Не удалось связаться с Ely.by: %1"
+
+msgctxt "ElyByStep"
+msgid "Enter the code from your authenticator app."
+msgstr "Введите код из приложения-аутентификатора."
+
+msgctxt "ElyByStep"
+msgid "Wrong login or password."
+msgstr "Неверный логин или пароль."
+
+msgctxt "ElyByStep"
+msgid "Wrong login, password or code."
+msgstr "Неверный логин, пароль или код."
+
+msgctxt "ElyByStep"
+msgid "Ely.by sent an unexpected response."
+msgstr "Ely.by прислал неожиданный ответ."
+
+msgctxt "ElyByStep"
+msgid "Logged in to Ely.by"
+msgstr "Вход в Ely.by выполнен"
+
+msgctxt "LauncherPartLaunch"
+msgid "authlib-injector %1 is missing or damaged, it is needed for Ely.by accounts."
+msgstr "authlib-injector %1 отсутствует или повреждён, он нужен для аккаунтов Ely.by."
+
+msgctxt "QObject"
+msgid "Download authlib-injector"
+msgstr "Загрузка authlib-injector"

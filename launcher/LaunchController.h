@@ -77,6 +77,8 @@ class LaunchController : public Task {
     void launchInstance();
     void decideAccount();
     LaunchDecision decideLaunchMode();
+    //! refreshes the account if needed and asks to log in again when that fails, decidesMode sets the launch mode from its state
+    LaunchDecision checkAccount(const MinecraftAccountPtr& account, bool decidesMode);
     bool askPlayDemo() const;
     QString askOfflineName(const QString& playerName, bool* ok = nullptr);
     bool reauthenticateAccount(const MinecraftAccountPtr& account, const QString& reason);

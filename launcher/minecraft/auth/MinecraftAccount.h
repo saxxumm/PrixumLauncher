@@ -87,6 +87,9 @@ class MinecraftAccount : public QObject, public Usable {
 
     static MinecraftAccountPtr createOffline(const QString& username);
 
+    //! An Ely.by account that still needs loginElyBy()
+    static MinecraftAccountPtr createElyBy(const QString& username);
+
     static MinecraftAccountPtr loadFromJsonV3(const QJsonObject& json);
 
     static QUuid uuidFromUsername(QString username);
@@ -96,6 +99,9 @@ class MinecraftAccount : public QObject, public Usable {
 
    public: /* manipulation */
     shared_qobject_ptr<AuthFlow> login(bool useDeviceCode = false);
+
+    //! Logs an Ely.by account in, the password and code are not stored
+    shared_qobject_ptr<AuthFlow> loginElyBy(const QString& password, const QString& totp = {});
 
     shared_qobject_ptr<AuthFlow> refresh();
 
@@ -116,7 +122,8 @@ class MinecraftAccount : public QObject, public Usable {
 
     AccountType accountType() const noexcept { return data.type; }
 
-    bool ownsMinecraft() const { return data.type != AccountType::Offline && data.minecraftEntitlement.ownsMinecraft; }
+    //! only Microsoft accounts carry a license, offline and Ely.by accounts rely on one of them
+    bool ownsMinecraft() const { return data.type == AccountType::MSA && data.minecraftEntitlement.ownsMinecraft; }
 
     bool hasProfile() const { return data.profileId().size() != 0; }
 
@@ -128,6 +135,9 @@ class MinecraftAccount : public QObject, public Usable {
             } break;
             case AccountType::Offline: {
                 return "offline";
+            } break;
+            case AccountType::ElyBy: {
+                return "elyby";
             } break;
             default: {
                 return "unknown";
@@ -167,6 +177,9 @@ class MinecraftAccount : public QObject, public Usable {
    protected: /* methods */
     void incrementUses() override;
     void decrementUses() override;
+
+   private:
+    shared_qobject_ptr<AuthFlow> startTask(AuthFlow* task);
 
    private slots:
     void authSucceeded();

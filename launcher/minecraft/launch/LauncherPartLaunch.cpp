@@ -42,6 +42,7 @@
 #include "FileSystem.h"
 #include "launch/LaunchTask.h"
 #include "minecraft/MinecraftInstance.h"
+#include "minecraft/auth/ElyBy.h"
 #include "minecraft/launch/RenderScaling.h"
 
 #if defined(Q_OS_LINUX) && defined(ENABLE_GAMEMODE)
@@ -94,6 +95,22 @@ void LauncherPartLaunch::executeTask()
 
     m_launchScript = instance->createLaunchScript(m_session, m_targetToJoin);
     QStringList args = instance->javaArguments();
+    if (!m_session->authlibInjector.isEmpty()) {
+        if (!ElyBy::Injector::isInstalled()) {
+            const auto reason =
+                tr("authlib-injector %1 is missing or damaged, it is needed for Ely.by accounts.").arg(ElyBy::Injector::version());
+            emit logLine(reason, MessageLevel::Fatal);
+            emitFailed(reason);
+            return;
+        }
+        auto injectorPath = ElyBy::Injector::path();
+#ifdef Q_OS_WIN
+        // like the class path, Java can't open non-ASCII paths from the command line otherwise
+        injectorPath = FS::getPathNameInLocal8bit(injectorPath);
+#endif
+        // sends the game's logins, skins and server joins to the account's server
+        args << ElyBy::Injector::javaAgentArgument(injectorPath, m_session->authlibInjector);
+    }
     QString allArgs = args.join(" ");
     emit logLine("Java arguments:\n  " + m_parent->censorPrivateInfo(allArgs) + "\n", MessageLevel::Launcher);
 

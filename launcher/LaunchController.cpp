@@ -59,6 +59,7 @@
 #include "launch/steps/TextPrint.h"
 #include "tasks/Task.h"
 #include "ui/dialogs/ChooseOfflineNameDialog.h"
+#include "ui/dialogs/ElyByLoginDialog.h"
 
 LaunchController::LaunchController() = default;
 
@@ -138,7 +139,8 @@ LaunchDecision LaunchController::decideLaunchMode()
     const auto* accounts = APPLICATION->accounts();
     MinecraftAccountPtr accountToCheck = nullptr;
 
-    if (m_accountToUse->accountType() != AccountType::Offline) {
+    // offline and Ely.by accounts borrow the license of a Microsoft account
+    if (m_accountToUse->accountType() == AccountType::MSA) {
         accountToCheck = m_accountToUse->ownsMinecraft() ? m_accountToUse : nullptr;
     } else if (const auto defaultAccount = accounts->defaultAccount(); defaultAccount && defaultAccount->ownsMinecraft()) {
         accountToCheck = defaultAccount;
@@ -156,6 +158,17 @@ LaunchDecision LaunchController::decideLaunchMode()
         return LaunchDecision::Continue;
     }
 
+    const auto decision = checkAccount(accountToCheck, true);
+    if (decision != LaunchDecision::Continue || m_accountToUse->accountType() != AccountType::ElyBy ||
+        m_actualLaunchMode != LaunchMode::Normal) {
+        return decision;
+    }
+    // servers that use Ely.by also need a fresh Ely.by session
+    return checkAccount(m_accountToUse, false);
+}
+
+LaunchDecision LaunchController::checkAccount(const MinecraftAccountPtr& accountToCheck, bool decidesMode)
+{
     auto state = accountToCheck->accountState();
     const bool needsRefresh =
         m_wantedLaunchMode == LaunchMode::Normal && (state == AccountState::Offline || accountToCheck->shouldRefresh());
@@ -197,8 +210,10 @@ LaunchDecision LaunchController::decideLaunchMode()
             reauthReason = tr("'%1' no longer exists on the servers").arg(accountToCheck->profileName());
             break;
         default:
-            m_actualLaunchMode =
-                state == AccountState::Online && m_wantedLaunchMode == LaunchMode::Normal ? LaunchMode::Normal : LaunchMode::Offline;
+            if (decidesMode) {
+                m_actualLaunchMode =
+                    state == AccountState::Online && m_wantedLaunchMode == LaunchMode::Normal ? LaunchMode::Normal : LaunchMode::Offline;
+            }
             return LaunchDecision::Continue;  // All good to go
     }
 
@@ -343,23 +358,25 @@ bool LaunchController::reauthenticateAccount(const MinecraftAccountPtr& account,
     if (button == QMessageBox::StandardButton::Yes) {
         auto* accounts = APPLICATION->accounts();
         const bool isDefault = accounts->defaultAccount() == account;
+        MinecraftAccountPtr newAccount;
         if (account->accountType() == AccountType::MSA) {
-            auto newAccount = MSALoginDialog::newAccount(m_parentWidget);
+            newAccount = MSALoginDialog::newAccount(m_parentWidget);
+        } else if (account->accountType() == AccountType::ElyBy) {
+            newAccount = ElyByLoginDialog::newAccount(m_parentWidget, account->accountData()->yggdrasilToken.extra["userName"].toString());
+        }
+        if (newAccount != nullptr) {
+            accounts->removeAccount(accounts->index(accounts->findAccountByProfileId(account->profileId())));
+            accounts->addAccount(newAccount);
 
-            if (newAccount != nullptr) {
-                accounts->removeAccount(accounts->index(accounts->findAccountByProfileId(account->profileId())));
-                accounts->addAccount(newAccount);
-
-                if (isDefault) {
-                    accounts->setDefaultAccount(newAccount);
-                }
-
-                if (m_accountToUse == account) {
-                    m_accountToUse = nullptr;
-                    decideAccount();
-                }
-                return true;
+            if (isDefault) {
+                accounts->setDefaultAccount(newAccount);
             }
+
+            if (m_accountToUse == account) {
+                m_accountToUse = nullptr;
+                decideAccount();
+            }
+            return true;
         }
     }
 

@@ -54,6 +54,7 @@
 #include "launch/steps/LookupServerAddress.h"
 #include "launch/steps/QuitAfterGameStop.h"
 #include "launch/steps/TextPrint.h"
+#include "minecraft/auth/ElyBy.h"
 
 #include "minecraft/auth/AccountList.h"
 #include "minecraft/launch/AutoInstallJava.h"
@@ -1252,6 +1253,10 @@ LaunchTask* MinecraftInstance::createLaunchTask(AuthSessionPtr session, Minecraf
     // if we aren't in offline mode
     if (session->launchMode != LaunchMode::Offline) {
         process->appendStep(makeShared<ClaimAccount>(pptr, session));
+        // accounts of other login servers (Ely.by) reach the game through authlib-injector
+        if (!session->authlibInjector.isEmpty() && !ElyBy::Injector::isInstalled()) {
+            process->appendStep(makeShared<TaskStepWrapper>(pptr, ElyBy::Injector::downloadTask()));
+        }
         for (auto t : createUpdateTask()) {
             process->appendStep(makeShared<TaskStepWrapper>(pptr, t));
         }

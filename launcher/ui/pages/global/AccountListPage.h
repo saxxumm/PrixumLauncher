@@ -71,6 +71,7 @@ class AccountListPage : public QMainWindow, public BasePage {
    public slots:
     void on_actionAddMicrosoft_triggered();
     void on_actionAddOffline_triggered();
+    void on_actionAddElyBy_triggered();
     void on_actionRemove_triggered();
     void on_actionRefresh_triggered();
     void on_actionSetDefault_triggered();
@@ -90,6 +91,8 @@ class AccountListPage : public QMainWindow, public BasePage {
    private:
     void changeEvent(QEvent* event) override;
     QMenu* createPopupMenu() override;
+    //! replaces an Ely.by account whose session ended with a freshly logged in one
+    void reloginElyBy(const MinecraftAccountPtr& account);
     AccountList* m_accounts;
     Ui::AccountListPage* ui;
 };

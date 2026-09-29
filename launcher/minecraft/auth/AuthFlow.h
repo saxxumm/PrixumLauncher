@@ -16,6 +16,8 @@ class AuthFlow : public Task {
     enum class Action { Refresh, Login, DeviceCode };
 
     explicit AuthFlow(AccountData* data, Action action = Action::Refresh);
+    /// Ely.by login with a password and an optional two-factor code
+    AuthFlow(AccountData* data, const QString& password, const QString& totp);
     virtual ~AuthFlow() = default;
 
     void executeTask() override;

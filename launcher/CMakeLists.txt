@@ -212,6 +212,8 @@ set(MINECRAFT_SOURCES
     minecraft/auth/AccountList.h
     minecraft/auth/AuthSession.cpp
     minecraft/auth/AuthSession.h
+    minecraft/auth/ElyBy.cpp
+    minecraft/auth/ElyBy.h
     minecraft/auth/AuthStep.h
     minecraft/auth/MinecraftAccount.cpp
     minecraft/auth/MinecraftAccount.h
@@ -221,6 +223,8 @@ set(MINECRAFT_SOURCES
     minecraft/auth/AuthFlow.cpp
     minecraft/auth/AuthFlow.h
 
+    minecraft/auth/steps/ElyByStep.cpp
+    minecraft/auth/steps/ElyByStep.h
     minecraft/auth/steps/EntitlementsStep.cpp
     minecraft/auth/steps/EntitlementsStep.h
     minecraft/auth/steps/GetSkinStep.cpp
@@ -1089,6 +1093,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/InstallLoaderDialog.cpp
     ui/dialogs/InstallLoaderDialog.h
     ui/dialogs/ChooseOfflineNameDialog.cpp
+    ui/dialogs/ElyByLoginDialog.cpp
+    ui/dialogs/ElyByLoginDialog.h
     ui/dialogs/ChooseOfflineNameDialog.h
     ui/dialogs/UntrustedModsDialog.cpp
     ui/dialogs/UntrustedModsDialog.h

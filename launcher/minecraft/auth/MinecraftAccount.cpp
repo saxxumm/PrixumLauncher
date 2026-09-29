@@ -52,6 +52,7 @@
 
 #include "minecraft/auth/AccountData.h"
 #include "minecraft/auth/AuthFlow.h"
+#include "minecraft/auth/ElyBy.h"
 
 MinecraftAccount::MinecraftAccount(QObject* parent) : QObject(parent)
 {
@@ -89,6 +90,15 @@ MinecraftAccountPtr MinecraftAccount::createOffline(const QString& username)
     return account;
 }
 
+MinecraftAccountPtr MinecraftAccount::createElyBy(const QString& username)
+{
+    auto account = makeShared<MinecraftAccount>();
+    account->data.type = AccountType::ElyBy;
+    account->data.yggdrasilToken.extra["userName"] = username;
+    account->data.yggdrasilToken.extra["clientToken"] = QUuid::createUuid().toString(QUuid::Id128);
+    return account;
+}
+
 QJsonObject MinecraftAccount::saveToJson() const
 {
     return data.saveState();
@@ -115,9 +125,19 @@ QPixmap MinecraftAccount::getFace(int width, int height) const
 
 shared_qobject_ptr<AuthFlow> MinecraftAccount::login(bool useDeviceCode)
 {
+    return startTask(new AuthFlow(&data, useDeviceCode ? AuthFlow::Action::DeviceCode : AuthFlow::Action::Login));
+}
+
+shared_qobject_ptr<AuthFlow> MinecraftAccount::loginElyBy(const QString& password, const QString& totp)
+{
+    return startTask(new AuthFlow(&data, password, totp));
+}
+
+shared_qobject_ptr<AuthFlow> MinecraftAccount::startTask(AuthFlow* task)
+{
     Q_ASSERT(m_currentTask.get() == nullptr);
 
-    m_currentTask.reset(new AuthFlow(&data, useDeviceCode ? AuthFlow::Action::DeviceCode : AuthFlow::Action::Login));
+    m_currentTask.reset(task);
     connect(m_currentTask.get(), &Task::succeeded, this, &MinecraftAccount::authSucceeded);
     connect(m_currentTask.get(), &Task::failed, this, &MinecraftAccount::authFailed);
     connect(m_currentTask.get(), &Task::aborted, this, [this] { authFailed(tr("Aborted")); });
@@ -251,6 +271,11 @@ void MinecraftAccount::fillSession(AuthSessionPtr session)
         session->uuid = uuidFromUsername(session->player_name).toString(QUuid::Id128);
     // 'legacy' or 'mojang', depending on account type
     session->user_type = typeString();
+    if (data.type == AccountType::ElyBy) {
+        // Ely.by is Yggdrasil, the game only knows it as a Mojang account
+        session->user_type = "mojang";
+        session->authlibInjector = ElyBy::Injector::s_target;
+    }
     if (!session->access_token.isEmpty()) {
         session->session = "token:" + data.accessToken() + ":" + data.profileId();
     } else {

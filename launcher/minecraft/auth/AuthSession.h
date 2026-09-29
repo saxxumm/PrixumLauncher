@@ -23,6 +23,8 @@ struct AuthSession {
     QString uuid;
     // 'msa' or 'offline', depending on account type
     QString user_type;
+    // authlib-injector target for accounts of other login servers (Ely.by), empty for Mojang's
+    QString authlibInjector;
     // the actual launch mode for this session
     LaunchMode launchMode;
 };

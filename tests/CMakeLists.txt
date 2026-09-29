@@ -80,3 +80,6 @@ set_tests_properties(NovaTheme PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen
 
 ecm_add_test(NewsEntry_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Xml
     TEST_NAME NewsEntry)
+
+ecm_add_test(ElyBy_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
+    TEST_NAME ElyBy)

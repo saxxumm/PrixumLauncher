@@ -54,6 +54,7 @@
    </attribute>
    <addaction name="actionAddMicrosoft"/>
    <addaction name="actionAddOffline"/>
+   <addaction name="actionAddElyBy"/>
    <addaction name="actionRefresh"/>
    <addaction name="actionRemove"/>
    <addaction name="actionSetDefault"/>
@@ -92,6 +93,14 @@
   <action name="actionAddOffline">
    <property name="text">
     <string>Add &amp;Offline</string>
+   </property>
+  </action>
+  <action name="actionAddElyBy">
+   <property name="text">
+    <string>Add &amp;Ely.by</string>
+   </property>
+   <property name="toolTip">
+    <string>Log in with an Ely.by account for servers that use Ely.by and its skins</string>
    </property>
   </action>
   <action name="actionRefresh">
