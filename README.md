@@ -96,14 +96,16 @@
 
 ## Скачать
 
-Все файлы — на странице [последнего релиза](https://github.com/saxxumm/PrixumLauncher/releases/latest).
+Все файлы — на странице [последнего релиза](https://github.com/saxxumm/PrixumLauncher/releases/latest),
+их имена начинаются с `PrixumLauncher-`.
 
 | Система | Установщик | Portable |
 | --- | --- | --- |
-| **Windows** 10 / 11 | `PrixumLauncher-Windows-MSVC-Setup-*.exe` <br><sub>ARM: `…-MSVC-arm64-Setup-*.exe`</sub> | `PrixumLauncher-Windows-MSVC-Portable-*.zip` |
-| **macOS** 13+ <br><sub>Intel и Apple Silicon</sub> | `PrixumLauncher-macOS-*.dmg` | `PrixumLauncher-macOS-Portable-*.zip` |
-| **Linux** | [`PrixumLauncher-Linux-x86_64.AppImage`](https://github.com/saxxumm/PrixumLauncher/releases/latest/download/PrixumLauncher-Linux-x86_64.AppImage) <br><sub>ARM: `…-Linux-aarch64.AppImage`</sub> | `PrixumLauncher-Linux-Qt6-Portable-*.tar.gz` |
-| **Arch / CachyOS** | `prixumlauncher-*-x86_64.pkg.tar.zst` <br><sub>`sudo pacman -U prixumlauncher-*.pkg.tar.zst`</sub> | — |
+| **Windows** 10 / 11 | `Windows-MSVC-Setup` · `.exe` | `Windows-MSVC-Portable` · `.zip` |
+| **Windows** на ARM | `Windows-MSVC-arm64-Setup` · `.exe` | `Windows-MSVC-arm64-Portable` · `.zip` |
+| **macOS** 13+ | `macOS` · `.dmg` | `macOS-Portable` · `.zip` |
+| **Linux** | [`Linux-x86_64.AppImage`](https://github.com/saxxumm/PrixumLauncher/releases/latest/download/PrixumLauncher-Linux-x86_64.AppImage) | `Linux-Qt6-Portable` · `.tar.gz` |
+| **Arch / CachyOS** | `prixumlauncher-*.pkg.tar.zst` | — |
 
 Portable-версия хранит экземпляры, аккаунты и настройки внутри своей папки — её можно носить на флешке.
 
