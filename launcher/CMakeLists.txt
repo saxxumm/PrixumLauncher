@@ -261,6 +261,8 @@ set(MINECRAFT_SOURCES
     minecraft/launch/ExtractNatives.h
     minecraft/launch/LauncherPartLaunch.cpp
     minecraft/launch/LauncherPartLaunch.h
+    minecraft/launch/RenderScaling.cpp
+    minecraft/launch/RenderScaling.h
     minecraft/launch/MinecraftTarget.cpp
     minecraft/launch/MinecraftTarget.h
     minecraft/launch/PrintInstanceInfo.cpp
@@ -863,6 +865,10 @@ SET(LAUNCHER_SOURCES
     ui/themes/IconTheme.h
     ui/themes/ThemeManager.cpp
     ui/themes/ThemeManager.h
+    ui/themes/NovaTheme.cpp
+    ui/themes/NovaTheme.h
+    ui/themes/NovaIcons.cpp
+    ui/themes/NovaIcons.h
     ui/themes/CatPack.cpp
     ui/themes/CatPack.h
     ui/themes/CatPainter.cpp
@@ -1067,6 +1073,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ReviewMessageBox.cpp
     ui/dialogs/ReviewMessageBox.h
     ui/dialogs/VersionSelectDialog.cpp
+    ui/dialogs/ThemeEditorDialog.cpp
+    ui/dialogs/ThemeEditorDialog.h
     ui/dialogs/VersionSelectDialog.h
     ui/dialogs/ResourceDownloadDialog.cpp
     ui/dialogs/ResourceDownloadDialog.h
@@ -1143,6 +1151,8 @@ SET(LAUNCHER_SOURCES
     ui/widgets/AppearanceWidget.cpp
     ui/widgets/MinecraftSettingsWidget.h
     ui/widgets/MinecraftSettingsWidget.cpp
+    ui/widgets/RenderScalingWidget.h
+    ui/widgets/RenderScalingWidget.cpp
     ui/widgets/JavaSettingsWidget.h
     ui/widgets/JavaSettingsWidget.cpp
 
@@ -1206,6 +1216,7 @@ qt_add_resources(LAUNCHER_RESOURCES
     resources/iOS/iOS.qrc
     resources/flat/flat.qrc
     resources/flat_white/flat_white.qrc
+    resources/nova/nova.qrc
     resources/documents/documents.qrc
     resources/shaders/shaders.qrc
     "${CMAKE_CURRENT_BINARY_DIR}/../${Launcher_Branding_LogoQRC}"

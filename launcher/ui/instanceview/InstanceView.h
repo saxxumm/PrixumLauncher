@@ -80,6 +80,11 @@ class InstanceView : public QAbstractItemView {
     int spacing() const { return m_spacing; };
     void setPaintCat(bool visible);
 
+    /// width of one instance tile, the delegate has to be told separately
+    void setItemWidth(int width);
+    /// text shown when the model has no rows
+    void setEmptyText(const QString& title, const QString& subtitle);
+
    public slots:
     virtual void updateGeometries() override;
 
@@ -101,6 +106,7 @@ class InstanceView : public QAbstractItemView {
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
+    bool viewportEvent(QEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
 
@@ -124,12 +130,15 @@ class InstanceView : public QAbstractItemView {
     int m_rightMargin = 5;
     int m_bottomMargin = 5;
     int m_categoryMargin = 5;
-    int m_spacing = 5;
+    int m_spacing = 6;
     int m_itemWidth = 100;
     int m_currentItemsPerRow = -1;
     int m_currentCursorColumn = -1;
     mutable QCache<int, QRect> m_geometryCache;
     CatPainter* m_cat = nullptr;
+    QPersistentModelIndex m_hoverIndex;
+    QString m_emptyTitle;
+    QString m_emptySubtitle;
 
     // point where the currently active mouse action started in geometry coordinates
     QPoint m_pressedPosition;

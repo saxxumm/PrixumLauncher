@@ -27,6 +27,9 @@
 #include "ui/themes/CatPack.h"
 #include "ui/themes/ITheme.h"
 
+class QFileSystemWatcher;
+class NovaTheme;
+
 inline auto themeDebugLog() {
     return qDebug() << "[Theme]";
 }
@@ -58,6 +61,16 @@ class ThemeManager {
 
     const LogColors& getLogColors() { return m_logColors; }
 
+    /// id of the theme that was applied last
+    QString currentApplicationThemeId() const { return m_currentThemeId; }
+    /// the applied theme when it is a Nova theme, nullptr otherwise
+    NovaTheme* currentNovaTheme();
+    NovaTheme* novaTheme(const QString& id);
+    /// a folder name inside the themes folder that is not taken yet
+    QString uniqueThemeFolderName(const QString& name);
+    /// re-color the Nova icon theme after the colors of the application theme changed
+    void refreshIconTheme();
+
     void refresh();
 
    private:
@@ -70,6 +83,13 @@ class ThemeManager {
     QPalette m_defaultPalette;
     QString m_defaultStyle;
     LogColors m_logColors;
+    QString m_currentThemeId;
+    QString m_currentIconThemeId;
+    std::unique_ptr<QFileSystemWatcher> m_themeWatcher;
+    bool m_reloadPending = false;
+
+    void watchCurrentTheme();
+    void reloadCurrentTheme();
 
     void initializeThemes();
     void initializeCatPacks();

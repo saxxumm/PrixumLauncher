@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LAUNCHER_APPID="org.prismlauncher.PrismLauncher"
+LAUNCHER_APPID="org.prixumlauncher.PrixumLauncher"
 
 svg2png() {
     input_file="$1"
@@ -25,7 +25,7 @@ if command -v "inkscape" && command -v "icotool" && command -v "oxipng"; then
 
     oxipng --opt max --strip all --alpha --interlace 0 "$d/prismlauncher_"*".png"
 
-    rm prismlauncher.ico && icotool -o prismlauncher.ico -c \
+    rm prixumlauncher.ico && icotool -o prixumlauncher.ico -c \
         "$d/prismlauncher_256.png"  \
         "$d/prismlauncher_128.png"  \
         "$d/prismlauncher_64.png"   \
@@ -42,7 +42,7 @@ if command -v "inkscape" && command -v "iconutil" && command -v "oxipng"; then
     # macOS ICNS
     d=$(mktemp -d)
 
-    d="$d/prismlauncher.iconset"
+    d="$d/prixumlauncher.iconset"
 
     mkdir -p "$d"
 
@@ -60,7 +60,7 @@ if command -v "inkscape" && command -v "iconutil" && command -v "oxipng"; then
     oxipng --opt max --strip all --alpha --interlace 0 "$d/icon_"*".png"
 
     iconutil -c icns "$d"
-    cp -v "$d/prismlauncher.icns" .
+    cp -v "$d/prixumlauncher.icns" .
 else
     echo "ERROR: macOS icons were NOT generated!" >&2
     echo "ERROR: requires inkscape, iconutil and oxipng in PATH"

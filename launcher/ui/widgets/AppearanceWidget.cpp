@@ -35,6 +35,8 @@
  */
 
 #include "AppearanceWidget.h"
+#include "ui/dialogs/ThemeEditorDialog.h"
+#include "ui/themes/NovaIcons.h"
 #include "ui_AppearanceWidget.h"
 
 #include <DesktopServices.h>
@@ -88,6 +90,16 @@ AppearanceWidget::AppearanceWidget(bool themesOnly, QWidget* parent)
     connect(m_ui->catPackFolder, &QPushButton::clicked, this,
             [] { DesktopServices::openPath(APPLICATION->themeManager()->getCatPacksFolder().path()); });
     connect(m_ui->reloadThemesButton, &QPushButton::pressed, this, &AppearanceWidget::loadThemeSettings);
+
+    // the theme editor creates and changes Nova themes
+    auto* editThemeButton = new QPushButton(NovaIcons::icon("sparkles"), tr("Theme &Editor..."), this);
+    editThemeButton->setToolTip(tr("Create or change a theme and see the result immediately."));
+    m_ui->gridLayout->addWidget(editThemeButton, 0, 4);
+    connect(editThemeButton, &QPushButton::clicked, this, [this] {
+        ThemeEditorDialog dialog(this);
+        dialog.exec();
+        loadThemeSettings();
+    });
 }
 
 AppearanceWidget::~AppearanceWidget()
@@ -194,7 +206,8 @@ void AppearanceWidget::loadThemeSettings()
     for (int i = 0; i < iconThemes.count(); ++i) {
         const IconTheme* theme = iconThemes[i];
 
-        QIcon iconForComboBox = QIcon(theme->path() + "/scalable/settings");
+        QIcon iconForComboBox =
+            theme->id() == NovaIcons::s_iconThemeId ? NovaIcons::icon("settings") : QIcon(theme->path() + "/scalable/settings");
         m_ui->iconsComboBox->addItem(iconForComboBox, theme->name(), theme->id());
 
         if (currentIconTheme == theme->id())

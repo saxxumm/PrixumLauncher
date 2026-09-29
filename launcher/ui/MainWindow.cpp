@@ -55,18 +55,25 @@
 #include <QActionGroup>
 #include <QApplication>
 #include <QButtonGroup>
+#include <QComboBox>
+#include <QDateTime>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
+#include <QLocale>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <QPushButton>
 #include <QShortcut>
+#include <QSignalBlocker>
+#include <QStackedWidget>
 #include <QStatusBar>
 #include <QToolBar>
 #include <QToolButton>
@@ -105,13 +112,15 @@
 #include "ui/dialogs/NewInstanceDialog.h"
 #include "ui/dialogs/NewsDialog.h"
 #include "ui/dialogs/ProgressDialog.h"
+#include "ui/dialogs/ThemeEditorDialog.h"
 #include "ui/dialogs/skins/SkinManageDialog.h"
 #include "ui/instanceview/InstanceDelegate.h"
 #include "ui/instanceview/InstanceProxyModel.h"
 #include "ui/instanceview/InstanceView.h"
 #include "ui/themes/ITheme.h"
+#include "ui/themes/NovaIcons.h"
+#include "ui/themes/NovaTheme.h"
 #include "ui/themes/ThemeManager.h"
-#include "ui/widgets/LabeledToolButton.h"
 
 #include "minecraft/PackProfile.h"
 #include "minecraft/VersionFile.h"
@@ -157,45 +166,16 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     setAccessibleName(BuildConfig.LAUNCHER_DISPLAYNAME);
 #endif
 
-    // instance toolbar stuff
+    // the main window uses the monochrome Nova icons, they follow the colors of the active theme
+    setupNovaIcons();
+
+    // set the menu for the folders help, accounts, and export buttons
     {
-        // Qt doesn't like vertical moving toolbars, so we have to force them...
-        // See https://github.com/PolyMC/PolyMC/issues/493
-        connect(ui->instanceToolBar, &QToolBar::orientationChanged, this,
-                [this](Qt::Orientation) { ui->instanceToolBar->setOrientation(Qt::Vertical); });
-
-        // if you try to add a widget to a toolbar in a .ui file
-        // qt designer will delete it when you save the file >:(
-        changeIconButton = new LabeledToolButton(this);
-        changeIconButton->setObjectName(QStringLiteral("changeIconButton"));
-        changeIconButton->setIcon(QIcon::fromTheme("news"));
-        changeIconButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        connect(changeIconButton, &QToolButton::clicked, this, &MainWindow::on_actionChangeInstIcon_triggered);
-        ui->instanceToolBar->insertWidgetBefore(ui->actionLaunchInstance, changeIconButton);
-
-        renameButton = new LabeledToolButton(this);
-        renameButton->setObjectName(QStringLiteral("renameButton"));
-        renameButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        connect(renameButton, &QToolButton::clicked, this, &MainWindow::on_actionRenameInstance_triggered);
-        ui->instanceToolBar->insertWidgetBefore(ui->actionLaunchInstance, renameButton);
-
-        ui->instanceToolBar->insertSeparator(ui->actionLaunchInstance);
-    }
-
-    // set the menu for the folders help, accounts, and export tool buttons
-    {
-        auto foldersMenuButton = dynamic_cast<QToolButton*>(ui->mainToolBar->widgetForAction(ui->actionFoldersButton));
         ui->actionFoldersButton->setMenu(ui->foldersMenu);
-        foldersMenuButton->setPopupMode(QToolButton::InstantPopup);
 
-        helpMenuButton = dynamic_cast<QToolButton*>(ui->mainToolBar->widgetForAction(ui->actionHelpButton));
         ui->actionHelpButton->setMenu(new QMenu(this));
         ui->actionHelpButton->menu()->addActions(ui->helpMenu->actions());
         ui->actionHelpButton->menu()->removeAction(ui->actionCheckUpdate);
-        helpMenuButton->setPopupMode(QToolButton::InstantPopup);
-
-        auto accountMenuButton = dynamic_cast<QToolButton*>(ui->mainToolBar->widgetForAction(ui->actionAccountsButton));
-        accountMenuButton->setPopupMode(QToolButton::InstantPopup);
 
         auto exportInstanceMenu = new QMenu(this);
         exportInstanceMenu->addAction(ui->actionExportInstanceZip);
@@ -218,15 +198,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 #endif
 
         // disabled until we have an instance selected
-        ui->instanceToolBar->setEnabled(false);
         setInstanceActionsEnabled(false);
-
-        // add a close button at the end of the main toolbar when running on gamescope / steam deck
-        // this is only needed on gamescope because it defaults to an X11/XWayland session and
-        // does not implement decorations
-        if (qgetenv("XDG_CURRENT_DESKTOP") == "gamescope") {
-            ui->mainToolBar->addAction(ui->actionCloseWindow);
-        }
 
         ui->actionViewJavaFolder->setEnabled(BuildConfig.JAVA_DOWNLOADER_ENABLED);
     }
@@ -235,9 +207,84 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         connect(ui->actionViewLog, &QAction::triggered, this, [] { APPLICATION->showLogWindow(); });
     }
 
-    // add the toolbar toggles to the view menu
-    ui->viewMenu->addAction(ui->instanceToolBar->toggleViewAction());
-    ui->viewMenu->addAction(ui->newsToolBar->toggleViewAction());
+    // sidebar
+    {
+        ui->novaBrandName->setText(BuildConfig.LAUNCHER_DISPLAYNAME);
+        ui->novaBrandVersion->setText(BuildConfig.printableVersionString());
+        ui->novaBrandVersion->setToolTip(BuildConfig.printableVersionString());
+        // long names and versions must not push the sidebar wider
+        ui->novaBrandName->setMinimumWidth(1);
+        ui->novaBrandVersion->setMinimumWidth(1);
+        ui->brandLayout->removeItem(ui->brandSpacer);
+        ui->brandLayout->setSpacing(8);
+        ui->brandLayout->setStretchFactor(ui->brandTextLayout, 1);
+
+        bindButton(ui->addInstanceButton, ui->actionAddInstance, NovaIcons::icon("plus", NovaIcons::Tint::AccentText));
+        bindButton(ui->foldersButton, ui->actionFoldersButton);
+        bindButton(ui->settingsButton, ui->actionSettings);
+        bindButton(ui->themeButton, ui->actionChangeTheme);
+        bindButton(ui->newsButton, ui->actionMoreNews);
+        bindButton(ui->helpButton, ui->actionHelpButton);
+        bindButton(ui->updateButton, ui->actionCheckUpdate);
+        bindButton(ui->catButton, ui->actionCAT);
+        bindButton(ui->accountButton, ui->actionAccountsButton);
+        ui->accountButton->setIconSize(QSize(24, 24));
+
+        // there is no library page switching yet, the button brings you back to the full list
+        ui->libraryButton->setIcon(NovaIcons::icon("library"));
+        connect(ui->libraryButton, &QPushButton::clicked, this, [this] {
+            ui->libraryButton->setChecked(true);
+            ui->novaSearch->clear();
+            view->setFocus();
+        });
+
+        // gamescope / steam deck: it defaults to an X11/XWayland session and does not implement decorations
+        if (qgetenv("XDG_CURRENT_DESKTOP") == "gamescope") {
+            bindButton(ui->closeWindowButton, ui->actionCloseWindow);
+        } else {
+            ui->closeWindowButton->hide();
+        }
+
+        ui->sidebarToggleButton->setIcon(NovaIcons::icon("menu", NovaIcons::Tint::Muted));
+        ui->sidebarToggleButton->setToolTip(ui->actionToggleSidebar->toolTip());
+        connect(ui->sidebarToggleButton, &QToolButton::clicked, ui->actionToggleSidebar, &QAction::trigger);
+    }
+
+    // instance panel
+    {
+        bindButton(ui->novaPlayButton, ui->actionLaunchInstance, NovaIcons::icon("play", NovaIcons::Tint::AccentText));
+        ui->novaPlayButton->setPopupMode(QToolButton::MenuButtonPopup);
+        ui->novaPlayButton->setIconSize(QSize(20, 20));
+        bindButton(ui->novaKillButton, ui->actionKillInstance, NovaIcons::icon("stop", NovaIcons::Tint::Danger));
+        ui->novaKillButton->setProperty("novaHideWhenDisabled", true);
+        syncButton(ui->novaKillButton, ui->actionKillInstance);
+
+        bindButton(ui->editButton, ui->actionEditInstance);
+        bindButton(ui->groupButton, ui->actionChangeInstGroup);
+        bindButton(ui->folderButton, ui->actionViewSelectedInstFolder);
+        // a menu on a push button shifts its contents, pop the export formats up by hand instead
+        ui->exportButton->setProperty("novaPopupMenu", true);
+        bindButton(ui->exportButton, ui->actionExportInstance);
+        bindButton(ui->copyButton, ui->actionCopyInstance);
+        bindButton(ui->shortcutButton, ui->actionCreateInstanceShortcut);
+        bindButton(ui->deleteButton, ui->actionDeleteInstance, NovaIcons::icon("trash", NovaIcons::Tint::Danger));
+
+        connect(ui->novaInstanceIcon, &QToolButton::clicked, this, &MainWindow::on_actionChangeInstIcon_triggered);
+        connect(ui->novaInstanceName, &QToolButton::clicked, this, &MainWindow::on_actionRenameInstance_triggered);
+        ui->novaInstanceIcon->setCursor(Qt::PointingHandCursor);
+        ui->novaInstanceName->setCursor(Qt::PointingHandCursor);
+        ui->inspectorStack->setCurrentWidget(ui->inspectorEmptyPage);
+        ui->novaInstanceIcon->setIconSize(QSize(64, 64));
+        ui->actionsLayout->setVerticalSpacing(2);
+        ui->inspectorInstanceLayout->setSpacing(6);
+        ui->detailsLayout->setVerticalSpacing(5);
+        ui->inspectorLayout->setContentsMargins(14, 14, 14, 12);
+        // the panel only scrolls when the window is really small
+        ui->inspectorScroll->viewport()->setAutoFillBackground(false);
+        ui->inspectorScrollContents->setAutoFillBackground(false);
+
+        bindButton(ui->inspectorToggleButton, ui->actionToggleInspector, NovaIcons::icon("panel", NovaIcons::Tint::Muted));
+    }
 
     updateThemeMenu();
     updateMainToolBar();
@@ -257,6 +304,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         // FIXME: This is kinda weird. and bad. We need some kind of managed shutdown.
         auto q = new QShortcut(QKeySequence::Quit, this);
         connect(q, &QShortcut::activated, APPLICATION, &Application::quit);
+
+        auto find = new QShortcut(QKeySequence::Find, this);
+        connect(find, &QShortcut::activated, this, [this] {
+            ui->novaSearch->setFocus();
+            ui->novaSearch->selectAll();
+        });
     }
 
     // Konami Code
@@ -265,33 +318,28 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         connect(secretEventFilter, &KonamiCode::triggered, this, &MainWindow::konamiTriggered);
     }
 
-    // Add the news label to the news toolbar.
+    // Add the news label to the news bar.
     {
         m_newsChecker.reset(new NewsChecker(APPLICATION->network(), BuildConfig.NEWS_RSS_URL));
-        newsLabel = new QToolButton();
-        newsLabel->setIcon(QIcon::fromTheme("news"));
-        newsLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        newsLabel->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        newsLabel->setFocusPolicy(Qt::NoFocus);
-        ui->newsToolBar->insertWidget(ui->actionMoreNews, newsLabel);
+        ui->newsLabel->setFocusPolicy(Qt::NoFocus);
+        bindButton(ui->moreNewsButton, ui->actionMoreNews);
 
-        connect(newsLabel, &QAbstractButton::clicked, this, &MainWindow::newsButtonClicked);
+        connect(ui->newsLabel, &QAbstractButton::clicked, this, &MainWindow::newsButtonClicked);
         connect(m_newsChecker.get(), &NewsChecker::newsLoaded, this, &MainWindow::updateNewsLabel);
         updateNewsLabel();
     }
 
     // Create the instance list widget
     {
-        view = new InstanceView(ui->centralWidget);
+        view = new InstanceView(ui->novaLibrary);
 
         view->setSelectionMode(QAbstractItemView::SingleSelection);
-        // FIXME: leaks ListViewDelegate
-        auto delegate = new ListViewDelegate(this);
-        view->setItemDelegate(delegate);
+        m_delegate = new ListViewDelegate(this);
+        view->setItemDelegate(m_delegate);
         view->setFrameShape(QFrame::NoFrame);
         // do not show ugly blue border on the mac
         view->setAttribute(Qt::WA_MacShowFocusRect, false);
-        connect(delegate, &ListViewDelegate::textChanged, this, [this](QString before, QString after) {
+        connect(m_delegate, &ListViewDelegate::textChanged, this, [this](QString before, QString after) {
             if (auto newRoot = askToUpdateInstanceDirName(m_selectedInstance, before, after, this); !newRoot.isEmpty()) {
                 auto oldID = m_selectedInstance->id();
                 auto newID = QFileInfo(newRoot).fileName();
@@ -317,13 +365,46 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         proxymodel->setSourceModel(APPLICATION->instances());
         proxymodel->sort(0);
         connect(proxymodel, &InstanceProxyModel::dataChanged, this, &MainWindow::instanceDataChanged);
+        connect(proxymodel, &InstanceProxyModel::rowsInserted, this, &MainWindow::updateInstanceCount);
+        connect(proxymodel, &InstanceProxyModel::rowsRemoved, this, &MainWindow::updateInstanceCount);
+        connect(proxymodel, &InstanceProxyModel::modelReset, this, &MainWindow::updateInstanceCount);
+        connect(proxymodel, &InstanceProxyModel::layoutChanged, this, &MainWindow::updateInstanceCount);
 
         view->setModel(proxymodel);
         view->setSourceOfGroupCollapseStatus(
             [](const QString& groupName) -> bool { return APPLICATION->instances()->isGroupCollapsed(groupName); });
         connect(view, &InstanceView::groupStateChanged, APPLICATION->instances(), &InstanceList::on_GroupStateChanged);
-        ui->horizontalLayout->addWidget(view);
+        ui->libraryLayout->addWidget(view);
     }
+
+    // search and sorting
+    {
+        ui->novaSearch->addAction(NovaIcons::icon("search", NovaIcons::Tint::Muted), QLineEdit::LeadingPosition);
+        connect(ui->novaSearch, &QLineEdit::textChanged, this, [this](const QString& text) {
+            if (m_selectedInstance) {
+                m_filterSelection = m_selectedInstance->id();
+            }
+            m_filtering = true;
+            proxymodel->setFilterText(text);
+            m_filtering = false;
+            if (!m_filterSelection.isEmpty()) {
+                setSelectedInstanceById(m_filterSelection);
+            }
+            ui->libraryButton->setChecked(true);
+            updateInstanceCount();
+        });
+
+        ui->novaSort->addItem(NovaIcons::icon("sort", NovaIcons::Tint::Muted), QString(), "Name");
+        ui->novaSort->addItem(NovaIcons::icon("sort", NovaIcons::Tint::Muted), QString(), "LastLaunch");
+        ui->novaSort->addItem(NovaIcons::icon("sort", NovaIcons::Tint::Muted), QString(), "Playtime");
+        ui->novaSort->setCurrentIndex(std::max(0, ui->novaSort->findData(APPLICATION->settings()->get("InstSortMode").toString())));
+        connect(ui->novaSort, &QComboBox::currentIndexChanged, this, [this](int index) {
+            APPLICATION->settings()->set("InstSortMode", ui->novaSort->itemData(index).toString());
+            proxymodel->invalidate();
+            proxymodel->sort(0);
+        });
+    }
+
     // The cat background
     {
         // set the cat action priority here so you can still see the action in qt designer
@@ -341,20 +422,27 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         setStatusBarVisibility(statusBarVisible);
     }
 
-    // Lock toolbars
+    // Togglable parts of the layout
     {
-        bool toolbarsLocked = APPLICATION->settings()->get("ToolbarsLocked").toBool();
-        ui->actionLockToolbars->setChecked(toolbarsLocked);
-        connect(ui->actionLockToolbars, &QAction::toggled, this, &MainWindow::lockToolbars);
-        lockToolbars(toolbarsLocked);
+        const auto settings = APPLICATION->settings();
+        ui->actionToggleSidebar->setChecked(settings->get("NovaSidebarCompact").toBool());
+        ui->actionToggleInspector->setChecked(settings->get("NovaInspectorVisible").toBool());
+        ui->actionToggleNewsBar->setChecked(settings->get("NovaNewsVisible").toBool());
+        connect(ui->actionToggleSidebar, &QAction::toggled, this, &MainWindow::setSidebarCompact);
+        connect(ui->actionToggleInspector, &QAction::toggled, this, &MainWindow::setInspectorVisibility);
+        connect(ui->actionToggleNewsBar, &QAction::toggled, this, &MainWindow::setNewsBarVisibility);
+        setSidebarCompact(ui->actionToggleSidebar->isChecked());
+        setInspectorVisibility(ui->actionToggleInspector->isChecked());
+        setNewsBarVisibility(ui->actionToggleNewsBar->isChecked());
     }
+
     // start instance when double-clicked
     connect(view, &InstanceView::activated, this, &MainWindow::instanceActivated);
 
-    // track the selection -- update the instance toolbar
+    // track the selection -- update the instance panel
     connect(view->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::instanceChanged);
 
-    // track icon changes and update the toolbar!
+    // track icon changes and update the instance panel!
     connect(APPLICATION->icons(), &IconList::iconUpdated, this, &MainWindow::iconUpdated);
 
     // model reset -> selection is invalid. All the instance pointers are wrong.
@@ -366,15 +454,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     // When the global settings page closes, we want to know about it and update our state
     connect(APPLICATION, &Application::globalSettingsApplied, this, &MainWindow::globalSettingsClosed);
 
+    // sizes of the sidebar, panels and instance tiles are part of the theme
+    connect(APPLICATION, &Application::themeApplied, this, &MainWindow::applyThemeMetrics);
+
     m_statusLeft = new QLabel(tr("No instance selected"), this);
     m_statusCenter = new QLabel(tr("Total playtime: 0s"), this);
     statusBar()->addPermanentWidget(m_statusLeft, 1);
     statusBar()->addPermanentWidget(m_statusCenter, 0);
-
-    // Add "manage accounts" button, right align
-    QWidget* spacer = new QWidget();
-    spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    ui->mainToolBar->insertWidget(ui->actionAccountsButton, spacer);
 
     // Use undocumented property... https://stackoverflow.com/questions/7121718/create-a-scrollbar-in-a-submenu-qt
     ui->accountsMenu->setStyleSheet("QMenu { menu-scrollable: 1; }");
@@ -416,12 +502,243 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(ui->actionUndoTrashInstance, &QAction::triggered, this, &MainWindow::undoTrashInstance);
 
+    applyThemeMetrics();
     setSelectedInstanceById(APPLICATION->settings()->get("SelectedInstance").toString());
 
     // removing this looks stupid
     view->setFocus();
 
     retranslateUi();
+}
+
+void MainWindow::setupNovaIcons()
+{
+    using NovaIcons::icon;
+    ui->actionAddInstance->setIcon(icon("plus"));
+    ui->actionFoldersButton->setIcon(icon("folder"));
+    ui->actionSettings->setIcon(icon("settings"));
+    ui->actionChangeTheme->setIcon(icon("palette"));
+    ui->actionThemeEditor->setIcon(icon("sparkles"));
+    ui->actionHelpButton->setIcon(icon("help"));
+    ui->actionCheckUpdate->setIcon(icon("update"));
+    ui->actionCAT->setIcon(icon("cat"));
+    ui->actionMoreNews->setIcon(icon("news"));
+    ui->actionAccountsButton->setIcon(icon("user"));
+    ui->actionManageAccounts->setIcon(icon("account-add"));
+    ui->actionLaunchInstance->setIcon(icon("play"));
+    ui->actionKillInstance->setIcon(icon("stop"));
+    ui->actionEditInstance->setIcon(icon("edit"));
+    ui->actionChangeInstGroup->setIcon(icon("tag"));
+    ui->actionViewSelectedInstFolder->setIcon(icon("folder"));
+    ui->actionExportInstance->setIcon(icon("export"));
+    ui->actionCopyInstance->setIcon(icon("copy"));
+    ui->actionDeleteInstance->setIcon(icon("trash"));
+    ui->actionCreateInstanceShortcut->setIcon(icon("shortcut"));
+    ui->actionRenameInstance->setIcon(icon("rename"));
+    ui->actionViewLog->setIcon(icon("logs"));
+    ui->actionCloseWindow->setIcon(icon("close"));
+    ui->actionToggleSidebar->setIcon(icon("menu"));
+    ui->actionToggleInspector->setIcon(icon("panel"));
+}
+
+void MainWindow::bindButton(QAbstractButton* button, QAction* action, const QIcon& icon)
+{
+    button->setProperty("novaIcon", QVariant::fromValue(icon));
+    m_boundButtons.append({ button, action });
+    syncButton(button, action);
+    connect(action, &QAction::changed, button, [this, button, action] { syncButton(button, action); });
+    // buttons with a menu show it instead of emitting clicked (except for the split play button)
+    connect(button, &QAbstractButton::clicked, action, [button, action] {
+        if (button->property("novaPopupMenu").toBool() && action->menu()) {
+            action->menu()->popup(button->mapToGlobal(QPoint(0, button->height())));
+        } else {
+            action->trigger();
+        }
+    });
+}
+
+void MainWindow::syncButton(QAbstractButton* button, QAction* action)
+{
+    const bool compact = button->property("compact").toBool();
+    button->setText(compact ? QString() : action->iconText());
+    button->setToolTip(compact ? action->iconText() : action->toolTip());
+    button->setEnabled(action->isEnabled());
+    if (button->property("novaHideWhenDisabled").toBool()) {
+        button->setVisible(action->isVisible() && action->isEnabled());
+    } else {
+        button->setVisible(action->isVisible());
+    }
+    button->setCheckable(action->isCheckable());
+    if (action->isCheckable()) {
+        button->setChecked(action->isChecked());
+    }
+    const auto icon = button->property("novaIcon").value<QIcon>();
+    button->setIcon(icon.isNull() ? action->icon() : icon);
+    if (button->property("novaPopupMenu").toBool()) {
+        // handled in bindButton
+    } else if (auto* push = qobject_cast<QPushButton*>(button)) {
+        if (push->menu() != action->menu()) {
+            push->setMenu(action->menu());
+        }
+    } else if (auto* tool = qobject_cast<QToolButton*>(button)) {
+        if (tool->menu() != action->menu()) {
+            tool->setMenu(action->menu());
+        }
+    }
+}
+
+void MainWindow::applyThemeMetrics()
+{
+    const auto tokens = Nova::current();
+    const qreal dpr = devicePixelRatioF();
+
+    ui->novaSidebar->setFixedWidth(ui->actionToggleSidebar->isChecked() ? 76 : tokens.metric("sidebarWidth"));
+    ui->novaInspector->setFixedWidth(tokens.metric("inspectorWidth"));
+
+    m_delegate->setMetrics(tokens.metric("cardWidth"), tokens.metric("iconSize"));
+    view->setItemWidth(tokens.metric("cardWidth"));
+    view->updateGeometries();
+    view->viewport()->update();
+
+    ui->brandIcon->setPixmap(APPLICATION->logo().pixmap(QSize(34, 34), dpr));
+    // room next to the logo and the collapse button
+    const int brandWidth = tokens.metric("sidebarWidth") - 24 - 4 - 34 - 16 - 30;
+    ui->novaBrandName->setText(ui->novaBrandName->fontMetrics().elidedText(BuildConfig.LAUNCHER_DISPLAYNAME, Qt::ElideRight, brandWidth));
+    ui->novaBrandVersion->setText(
+        ui->novaBrandVersion->fontMetrics().elidedText(BuildConfig.printableVersionString(), Qt::ElideRight, brandWidth));
+    ui->emptyInspectorIcon->setPixmap(NovaIcons::icon("cube", NovaIcons::Tint::Muted).pixmap(QSize(44, 44), dpr));
+    ui->newsIcon->setPixmap(NovaIcons::icon("news", NovaIcons::Tint::Muted).pixmap(QSize(16, 16), dpr));
+    ui->versionIcon->setPixmap(NovaIcons::icon("cube", NovaIcons::Tint::Muted).pixmap(QSize(16, 16), dpr));
+    ui->playtimeIcon->setPixmap(NovaIcons::icon("clock", NovaIcons::Tint::Muted).pixmap(QSize(16, 16), dpr));
+    ui->lastPlayedIcon->setPixmap(NovaIcons::icon("history", NovaIcons::Tint::Muted).pixmap(QSize(16, 16), dpr));
+    ui->groupIcon->setPixmap(NovaIcons::icon("tag", NovaIcons::Tint::Muted).pixmap(QSize(16, 16), dpr));
+    updateInspector();
+}
+
+void MainWindow::setSidebarCompact(bool compact)
+{
+    APPLICATION->settings()->set("NovaSidebarCompact", compact);
+    for (auto& [button, action] : m_boundButtons) {
+        if (ui->novaSidebar->isAncestorOf(button)) {
+            button->setProperty("compact", compact);
+            syncButton(button, action);
+            // re-evaluate the [compact="true"] selectors
+            button->style()->unpolish(button);
+            button->style()->polish(button);
+        }
+    }
+    ui->libraryButton->setText(compact ? QString() : tr("Instances"));
+    ui->libraryButton->setToolTip(compact ? tr("Instances") : QString());
+    ui->libraryButton->setProperty("compact", compact);
+    ui->libraryButton->style()->unpolish(ui->libraryButton);
+    ui->libraryButton->style()->polish(ui->libraryButton);
+    ui->brandIcon->setVisible(!compact);
+    ui->novaBrandName->setVisible(!compact);
+    ui->novaBrandVersion->setVisible(!compact);
+    ui->librarySectionLabel->setVisible(!compact);
+    ui->moreSectionLabel->setVisible(!compact);
+    ui->novaSidebar->setFixedWidth(compact ? 76 : Nova::current().metric("sidebarWidth"));
+}
+
+void MainWindow::setInspectorVisibility(bool visible)
+{
+    APPLICATION->settings()->set("NovaInspectorVisible", visible);
+    ui->novaInspector->setVisible(visible);
+}
+
+void MainWindow::setNewsBarVisibility(bool visible)
+{
+    APPLICATION->settings()->set("NovaNewsVisible", visible);
+    ui->novaNewsBar->setVisible(visible);
+}
+
+void MainWindow::on_actionThemeEditor_triggered()
+{
+    ThemeEditorDialog dialog(this);
+    dialog.exec();
+    updateThemeMenu();
+}
+
+void MainWindow::updateInstanceCount()
+{
+    const int total = APPLICATION->instances()->count();
+    const int shown = proxymodel->rowCount();
+    if (proxymodel->filterText().isEmpty()) {
+        ui->instanceCountLabel->setText(QString::number(total));
+        view->setEmptyText(tr("Welcome!"), tr("Click \"Add Instance\" to get started."));
+    } else {
+        ui->instanceCountLabel->setText(QString("%1 / %2").arg(shown).arg(total));
+        view->setEmptyText(tr("Nothing found"), tr("No instance matches \"%1\".").arg(proxymodel->filterText()));
+    }
+}
+
+void MainWindow::updateInspector()
+{
+    if (!m_selectedInstance) {
+        ui->inspectorStack->setCurrentWidget(ui->inspectorEmptyPage);
+        return;
+    }
+    ui->inspectorStack->setCurrentWidget(ui->inspectorInstancePage);
+    auto* instance = m_selectedInstance;
+
+    const int nameWidth = std::max(80, ui->novaInspector->width() - 48);
+    ui->novaInstanceName->setText(ui->novaInstanceName->fontMetrics().elidedText(instance->name(), Qt::ElideRight, nameWidth));
+
+    QString state = "idle";
+    QString status = tr("Ready to play");
+    if (instance->isRunning()) {
+        state = "running";
+        status = tr("Running");
+    } else if (instance->hasVersionBroken()) {
+        state = "broken";
+        status = tr("Broken");
+    } else if (instance->hasCrashed()) {
+        state = "broken";
+        status = tr("Crashed");
+    }
+    ui->novaStatusPill->setText(status);
+    ui->novaStatusPill->setProperty("state", state);
+    ui->novaStatusPill->style()->unpolish(ui->novaStatusPill);
+    ui->novaStatusPill->style()->polish(ui->novaStatusPill);
+
+    // version and mod loader
+    {
+        auto profile = instance->getPackProfile();
+        QString version = profile->getComponentVersion("net.minecraft");
+        version = version.isEmpty() ? tr("Unknown version") : tr("Minecraft %1").arg(version);
+        static const QList<std::pair<QString, QString>> s_loaders{ { "net.neoforged", "NeoForge" },
+                                                                   { "net.minecraftforge", "Forge" },
+                                                                   { "net.fabricmc.fabric-loader", "Fabric" },
+                                                                   { "org.quiltmc.quilt-loader", "Quilt" },
+                                                                   { "com.mumfrey.liteloader", "LiteLoader" } };
+        for (const auto& [uid, loader] : s_loaders) {
+            if (auto loaderVersion = profile->getComponentVersion(uid); !loaderVersion.isEmpty()) {
+                version += QString(" · %1 %2").arg(loader, loaderVersion);
+                break;
+            }
+        }
+        ui->versionLabel->setText(version);
+    }
+
+    const bool showTime = instance->settings()->get("ShowGameTime").toBool();
+    ui->playtimeIcon->setVisible(showTime);
+    ui->playtimeLabel->setVisible(showTime);
+    ui->lastPlayedIcon->setVisible(showTime);
+    ui->lastPlayedLabel->setVisible(showTime);
+    if (showTime) {
+        const bool withoutDays = APPLICATION->settings()->get("ShowGameTimeWithoutDays").toBool();
+        ui->playtimeLabel->setText(instance->totalTimePlayed() > 0
+                                       ? tr("Played for %1").arg(Time::prettifyDuration(instance->totalTimePlayed(), withoutDays))
+                                       : tr("Never played"));
+        ui->lastPlayedLabel->setText(
+            instance->lastLaunch() > 0
+                ? tr("Last played %1")
+                      .arg(QLocale().toString(QDateTime::fromMSecsSinceEpoch(instance->lastLaunch()).date(), QLocale::ShortFormat))
+                : tr("Not launched yet"));
+    }
+
+    const QString group = APPLICATION->instances()->getInstanceGroup(instance->id());
+    ui->groupLabel->setText(group.isEmpty() ? tr("Ungrouped") : group);
 }
 
 // macOS always has a native menu bar, so these fixes are not applicable
@@ -452,12 +769,24 @@ void MainWindow::retranslateUi()
         ui->actionAccountsButton->setText(profileLabel);
     }
 
-    changeIconButton->setToolTip(ui->actionChangeInstIcon->toolTip());
-    renameButton->setToolTip(ui->actionRenameInstance->toolTip());
+    ui->actionExportInstanceZip->setText(tr("%1 (zip)").arg(BuildConfig.LAUNCHER_DISPLAYNAME));
+    ui->novaInstanceIcon->setToolTip(ui->actionChangeInstIcon->toolTip());
+    ui->novaInstanceName->setToolTip(ui->actionRenameInstance->toolTip());
+    ui->librarySectionLabel->setText(ui->librarySectionLabel->text().toUpper());
+    ui->moreSectionLabel->setText(ui->moreSectionLabel->text().toUpper());
+    ui->novaSort->setItemText(0, tr("Name"));
+    ui->novaSort->setItemText(1, tr("Last launched"));
+    ui->novaSort->setItemText(2, tr("Playtime"));
+    ui->novaSort->setToolTip(tr("Sort instances by"));
+    if (!ui->actionToggleSidebar->isChecked()) {
+        ui->libraryButton->setText(tr("Instances"));
+    }
+    updateInstanceCount();
+    updateInspector();
 
     // replace the %1 with the launcher display name in some actions
-    if (helpMenuButton->toolTip().contains("%1"))
-        helpMenuButton->setToolTip(helpMenuButton->toolTip().arg(BuildConfig.LAUNCHER_DISPLAYNAME));
+    if (ui->actionHelpButton->toolTip().contains("%1"))
+        ui->actionHelpButton->setToolTip(ui->actionHelpButton->toolTip().arg(BuildConfig.LAUNCHER_DISPLAYNAME));
 
     for (auto action : ui->helpMenu->actions()) {
         if (action->text().contains("%1"))
@@ -471,25 +800,17 @@ MainWindow::~MainWindow() {}
 
 QMenu* MainWindow::createPopupMenu()
 {
-    QMenu* filteredMenu = QMainWindow::createPopupMenu();
-    filteredMenu->removeAction(ui->mainToolBar->toggleViewAction());
-
-    filteredMenu->addAction(ui->actionToggleStatusBar);
-    filteredMenu->addAction(ui->actionLockToolbars);
-
-    return filteredMenu;
+    auto* menu = new QMenu(this);
+    menu->addAction(ui->actionToggleSidebar);
+    menu->addAction(ui->actionToggleInspector);
+    menu->addAction(ui->actionToggleNewsBar);
+    menu->addAction(ui->actionToggleStatusBar);
+    return menu;
 }
 void MainWindow::setStatusBarVisibility(bool state)
 {
     statusBar()->setVisible(state);
     APPLICATION->settings()->set("StatusBarVisible", state);
-}
-void MainWindow::lockToolbars(bool state)
-{
-    ui->mainToolBar->setMovable(!state);
-    ui->instanceToolBar->setMovable(!state);
-    ui->newsToolBar->setMovable(!state);
-    APPLICATION->settings()->set("ToolbarsLocked", state);
 }
 
 void MainWindow::konamiTriggered()
@@ -498,18 +819,19 @@ void MainWindow::konamiTriggered()
         " stop:0 rgba(125, 0, 0, 255), stop:0.166 rgba(125, 125, 0, 255), stop:0.333 rgba(0, 125, 0, 255), stop:0.5 rgba(0, 125, 125, "
         "255), stop:0.666 rgba(0, 0, 125, 255), stop:0.833 rgba(125, 0, 125, 255), stop:1 rgba(125, 0, 0, 255));";
     QString stylesheet = "background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0," + gradient;
-    if (ui->mainToolBar->styleSheet() == stylesheet) {
-        ui->mainToolBar->setStyleSheet("");
-        ui->instanceToolBar->setStyleSheet("");
-        ui->centralWidget->setStyleSheet("");
-        ui->newsToolBar->setStyleSheet("");
+    const QString sidebarStyle =
+        "QFrame#novaSidebar { background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1," + gradient + " }";
+    if (ui->novaSidebar->styleSheet() == sidebarStyle) {
+        ui->novaSidebar->setStyleSheet("");
+        ui->novaCentral->setStyleSheet("");
+        ui->novaNewsBar->setStyleSheet("");
         ui->statusBar->setStyleSheet("");
         qDebug() << "Super Secret Mode DEACTIVATED!";
     } else {
-        ui->mainToolBar->setStyleSheet(stylesheet);
-        ui->instanceToolBar->setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1," + gradient);
-        ui->centralWidget->setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1," + gradient);
-        ui->newsToolBar->setStyleSheet(stylesheet);
+        ui->novaSidebar->setStyleSheet(sidebarStyle);
+        ui->novaCentral->setStyleSheet("QWidget#novaCentral { background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1," +
+                                       gradient + " }");
+        ui->novaNewsBar->setStyleSheet("QFrame#novaNewsBar { " + stylesheet + " }");
         ui->statusBar->setStyleSheet(stylesheet);
         qDebug() << "Super Secret Mode ACTIVATED!";
     }
@@ -580,8 +902,8 @@ void MainWindow::showInstanceContextMenu(const QPoint& pos)
 
 void MainWindow::updateMainToolBar()
 {
+    // the sidebar replaces the old main toolbar, the classic menu bar can still be shown on top of it
     ui->menuBar->setVisible(APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
-    ui->mainToolBar->setVisible(ui->menuBar->isNativeMenuBar() || !APPLICATION->settings()->get("MenuBarInsteadOfToolBar").toBool());
 }
 
 void MainWindow::updateLaunchButton()
@@ -610,20 +932,34 @@ void MainWindow::updateThemeMenu()
 
     QActionGroup* themesGroup = new QActionGroup(this);
 
-    for (auto* theme : themes) {
-        QAction* themeAction = themeMenu->addAction(theme->name());
-
-        themeAction->setCheckable(true);
-        if (APPLICATION->settings()->get("ApplicationTheme").toString() == theme->id()) {
-            themeAction->setChecked(true);
+    // Nova themes first, the classic ones below
+    for (const bool nova : { true, false }) {
+        if (!nova) {
+            themeMenu->addSeparator();
         }
-        themeAction->setActionGroup(themesGroup);
+        for (auto* theme : themes) {
+            if ((dynamic_cast<NovaTheme*>(theme) != nullptr) != nova) {
+                continue;
+            }
+            QAction* themeAction = themeMenu->addAction(theme->name());
+            themeAction->setToolTip(theme->tooltip());
 
-        connect(themeAction, &QAction::triggered, APPLICATION, [theme]() {
-            APPLICATION->themeManager()->setApplicationTheme(theme->id());
-            APPLICATION->settings()->set("ApplicationTheme", theme->id());
-        });
+            themeAction->setCheckable(true);
+            if (APPLICATION->settings()->get("ApplicationTheme").toString() == theme->id()) {
+                themeAction->setChecked(true);
+            }
+            themeAction->setActionGroup(themesGroup);
+
+            // themes can be reloaded while the menu exists, so only keep the id around
+            connect(themeAction, &QAction::triggered, APPLICATION, [id = theme->id()]() {
+                APPLICATION->themeManager()->setApplicationTheme(id);
+                APPLICATION->settings()->set("ApplicationTheme", id);
+            });
+        }
     }
+    themeMenu->addSeparator();
+    themeMenu->addAction(ui->actionThemeEditor);
+    themeMenu->addAction(ui->actionViewWidgetThemeFolder);
 
     ui->actionChangeTheme->setMenu(themeMenu);
 }
@@ -678,7 +1014,7 @@ void MainWindow::repopulateAccountsMenu()
             if (!face.isNull()) {
                 action->setIcon(face);
             } else {
-                action->setIcon(QIcon::fromTheme("noaccount"));
+                action->setIcon(NovaIcons::icon("user"));
             }
 
             const int highestNumberKey = 9;
@@ -750,7 +1086,7 @@ void MainWindow::defaultAccountChanged()
         ui->actionAccountsButton->setText(profileLabel);
         auto face = account->getFace();
         if (face.isNull()) {
-            ui->actionAccountsButton->setIcon(QIcon::fromTheme("noaccount"));
+            ui->actionAccountsButton->setIcon(NovaIcons::icon("user"));
         } else {
             ui->actionAccountsButton->setIcon(face);
         }
@@ -758,7 +1094,7 @@ void MainWindow::defaultAccountChanged()
     }
 
     // Set the icon to the "no account" icon.
-    ui->actionAccountsButton->setIcon(QIcon::fromTheme("noaccount"));
+    ui->actionAccountsButton->setIcon(NovaIcons::icon("user"));
     ui->actionAccountsButton->setText(tr("Accounts"));
 }
 
@@ -795,18 +1131,18 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* ev)
 void MainWindow::updateNewsLabel()
 {
     if (m_newsChecker->isLoadingNews()) {
-        newsLabel->setText(tr("Loading news..."));
-        newsLabel->setEnabled(false);
+        ui->newsLabel->setText(tr("Loading news..."));
+        ui->newsLabel->setEnabled(false);
         ui->actionMoreNews->setVisible(false);
     } else {
         QList<NewsEntryPtr> entries = m_newsChecker->getNewsEntries();
         if (entries.length() > 0) {
-            newsLabel->setText(entries[0]->title);
-            newsLabel->setEnabled(true);
+            ui->newsLabel->setText(entries[0]->title);
+            ui->newsLabel->setEnabled(true);
             ui->actionMoreNews->setVisible(true);
         } else {
-            newsLabel->setText(tr("No news available."));
-            newsLabel->setEnabled(false);
+            ui->newsLabel->setText(tr("No news available."));
+            ui->newsLabel->setEnabled(false);
             ui->actionMoreNews->setVisible(false);
         }
     }
@@ -956,11 +1292,11 @@ void MainWindow::processURLs(QList<QUrl> urls)
                     extra_info.insert("pack_id", packId);
                     addInstance(url.toString(), extra_info);
                 } else {
-                    CustomMessageBox::selectable(
-                        this, tr("Error"),
-                        tr("Unsupported Modrinth link.\n\nPrism Launcher currently only supports modpack links such as "
-                           "modrinth://modpack/fabulously-optimized."),
-                        QMessageBox::Critical)
+                    CustomMessageBox::selectable(this, tr("Error"),
+                                                 tr("Unsupported Modrinth link.\n\n%1 currently only supports modpack links such as "
+                                                    "modrinth://modpack/fabulously-optimized.")
+                                                     .arg(BuildConfig.LAUNCHER_DISPLAYNAME),
+                                                 QMessageBox::Critical)
                         ->show();
                 }
                 continue;
@@ -1224,7 +1560,7 @@ void MainWindow::on_actionChangeInstIcon_triggered()
         m_selectedInstance->setIconKey(dlg.selectedIconKey);
         auto icon = APPLICATION->icons()->getIcon(dlg.selectedIconKey);
         ui->actionChangeInstIcon->setIcon(icon);
-        changeIconButton->setIcon(icon);
+        ui->novaInstanceIcon->setIcon(icon);
     }
 }
 
@@ -1233,7 +1569,7 @@ void MainWindow::iconUpdated(QString icon)
     if (icon == m_currentInstIcon) {
         auto new_icon = APPLICATION->icons()->getIcon(m_currentInstIcon);
         ui->actionChangeInstIcon->setIcon(new_icon);
-        changeIconButton->setIcon(new_icon);
+        ui->novaInstanceIcon->setIcon(new_icon);
     }
 }
 
@@ -1242,7 +1578,7 @@ void MainWindow::updateInstanceToolIcon(QString new_icon)
     m_currentInstIcon = new_icon;
     auto icon = APPLICATION->icons()->getIcon(m_currentInstIcon);
     ui->actionChangeInstIcon->setIcon(icon);
-    changeIconButton->setIcon(icon);
+    ui->novaInstanceIcon->setIcon(icon);
 }
 
 void MainWindow::setSelectedInstanceById(const QString& id)
@@ -1252,6 +1588,10 @@ void MainWindow::setSelectedInstanceById(const QString& id)
     const QModelIndex index = APPLICATION->instances()->getInstanceIndexById(id);
     if (index.isValid()) {
         QModelIndex selectionIndex = proxymodel->mapFromSource(index);
+        // the instance may be hidden by the search filter
+        if (!selectionIndex.isValid()) {
+            return;
+        }
         view->selectionModel()->setCurrentIndex(selectionIndex, QItemSelectionModel::ClearAndSelect);
         updateStatusCenter();
     }
@@ -1390,6 +1730,10 @@ void MainWindow::globalSettingsClosed()
 {
     proxymodel->invalidate();
     proxymodel->sort(0);
+    {
+        QSignalBlocker blocker(ui->novaSort);
+        ui->novaSort->setCurrentIndex(std::max(0, ui->novaSort->findData(APPLICATION->settings()->get("InstSortMode").toString())));
+    }
     updateMainToolBar();
     updateLaunchButton();
     updateThemeMenu();
@@ -1677,7 +2021,10 @@ void MainWindow::startTask(Task* task)
 void MainWindow::instanceChanged(const QModelIndex& current, [[maybe_unused]] const QModelIndex& previous)
 {
     if (!current.isValid()) {
-        APPLICATION->settings()->set("SelectedInstance", QString());
+        // the search filter hides instances, that shouldn't forget the selection
+        if (!m_filtering) {
+            APPLICATION->settings()->set("SelectedInstance", QString());
+        }
         selectionBad();
         return;
     }
@@ -1688,18 +2035,18 @@ void MainWindow::instanceChanged(const QModelIndex& current, [[maybe_unused]] co
     QString id = current.data(InstanceList::InstanceIDRole).toString();
     m_selectedInstance = APPLICATION->instances()->getInstanceById(id);
     if (m_selectedInstance) {
-        ui->instanceToolBar->setEnabled(true);
+        m_filterSelection = m_selectedInstance->id();
         setInstanceActionsEnabled(true);
         ui->actionLaunchInstance->setEnabled(m_selectedInstance->canLaunch());
 
         ui->actionKillInstance->setEnabled(m_selectedInstance->isRunning());
         ui->actionExportInstance->setEnabled(m_selectedInstance->canExport());
-        renameButton->setText(m_selectedInstance->name());
         m_statusLeft->setText(m_selectedInstance->getStatusbarDescription());
         updateStatusCenter();
         updateInstanceToolIcon(m_selectedInstance->iconKey());
 
         updateLaunchButton();
+        updateInspector();
 
         APPLICATION->settings()->set("SelectedInstance", m_selectedInstance->id());
 
@@ -1733,11 +2080,12 @@ void MainWindow::selectionBad()
     m_statusLeft->setText(tr("No instance selected"));
 
     statusBar()->clearMessage();
-    ui->instanceToolBar->setEnabled(false);
     setInstanceActionsEnabled(false);
+    ui->actionLaunchInstance->setEnabled(false);
+    ui->actionKillInstance->setEnabled(false);
     updateLaunchButton();
-    renameButton->setText(tr("Rename Instance"));
     updateInstanceToolIcon("grass");
+    updateInspector();
 
     // ...and then see if we can enable the previously selected instance
     setSelectedInstanceById(APPLICATION->settings()->get("SelectedInstance").toString());
@@ -1790,6 +2138,8 @@ void MainWindow::updateStatusCenter()
 // Actions that also require other conditions (e.g. a running instance) won't be changed.
 void MainWindow::setInstanceActionsEnabled(bool enabled)
 {
+    ui->actionRenameInstance->setEnabled(enabled);
+    ui->actionChangeInstIcon->setEnabled(enabled);
     ui->actionEditInstance->setEnabled(enabled);
     ui->actionChangeInstGroup->setEnabled(enabled);
     ui->actionViewSelectedInstFolder->setEnabled(enabled);

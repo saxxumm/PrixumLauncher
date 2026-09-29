@@ -1,0 +1,35 @@
+{
+    "format": "nova",
+    "name": "Nova Dark",
+    "author": "Prism Launcher",
+    "base": "dark",
+    "colors": {
+        "window": "#101216",
+        "sidebar": "#0c0e11",
+        "surface": "#171a20",
+        "surfaceAlt": "#1d2129",
+        "hover": "#262b35",
+        "border": "#2a2f3a",
+        "text": "#e7e9ee",
+        "textMuted": "#8e96a8",
+        "link": "#6fc3ff",
+        "accent": "#3ecf8e",
+        "accentText": "#05140d",
+        "success": "#3ecf8e",
+        "warning": "#f5b83d",
+        "danger": "#f2555a",
+        "tooltip": "#232833",
+        "tooltipText": "#e7e9ee"
+    },
+    "metrics": {
+        "radius": 12,
+        "controlRadius": 8,
+        "density": 6,
+        "fontSize": 0,
+        "sidebarWidth": 240,
+        "inspectorWidth": 300,
+        "cardWidth": 112,
+        "iconSize": 48,
+        "fontFamily": ""
+    }
+}

@@ -44,6 +44,7 @@
 #include <utility>
 
 #include "InstanceView.h"
+#include "ui/themes/NovaTheme.h"
 
 VisualGroup::VisualGroup(QString text, InstanceView* view) : view(view), text(std::move(text)), collapsed(false) {}
 
@@ -141,73 +142,80 @@ VisualGroup::HitResults VisualGroup::hitScan(const QPoint& pos) const
 
 void VisualGroup::drawHeader(QPainter* painter, const QStyleOptionViewItem& option) const
 {
+    const auto tokens = Nova::current();
     QRect optRect = option.rect;
     optRect.setTop(optRect.top() + 7);
     QFont font(QApplication::font());
     font.setBold(true);
     const QFontMetrics fontMetrics = QFontMetrics(font);
+    painter->save();
     painter->setFont(font);
-
-    QPen pen;
-    pen.setWidth(2);
-    QColor penColor = option.palette.text().color();
-    penColor.setAlphaF(0.6f);
-    pen.setColor(penColor);
-    painter->setPen(pen);
     painter->setRenderHint(QPainter::Antialiasing);
 
     // sizes and offsets, to keep things consistent below
-    const int arrowOffsetLeft = fontMetrics.height() / 2 + 7;
-    const int textOffsetLeft = arrowOffsetLeft * 2;
+    const int arrowOffsetLeft = optRect.left() + 12;
+    const int textOffsetLeft = arrowOffsetLeft + 14;
     const int centerHeight = optRect.top() + fontMetrics.height() / 2;
     const QString& textToDraw = text.isEmpty() ? QObject::tr("Ungrouped") : text;
 
     // BEGIN: arrow
     {
-        constexpr int arrowSize = 6;
+        QPen pen(tokens.color("textMuted"), 1.8, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+        painter->setPen(pen);
+        constexpr int arrowSize = 4;
         QPolygon arrowPolygon;
         if (collapsed) {
             arrowPolygon << QPoint(arrowOffsetLeft - arrowSize / 2, centerHeight - arrowSize)
                          << QPoint(arrowOffsetLeft + arrowSize / 2, centerHeight)
                          << QPoint(arrowOffsetLeft - arrowSize / 2, centerHeight + arrowSize);
-            painter->drawPolyline(arrowPolygon);
         } else {
             arrowPolygon << QPoint(arrowOffsetLeft - arrowSize, centerHeight - arrowSize / 2)
                          << QPoint(arrowOffsetLeft, centerHeight + arrowSize / 2)
                          << QPoint(arrowOffsetLeft + arrowSize, centerHeight - arrowSize / 2);
-            painter->drawPolyline(arrowPolygon);
         }
+        painter->drawPolyline(arrowPolygon);
     }
     // END: arrow
 
-    // BEGIN: text
+    // BEGIN: text and item count
+    int textEnd = textOffsetLeft;
     {
         QRect textRect(optRect);
-        textRect.setTop(textRect.top());
         textRect.setLeft(textOffsetLeft);
         textRect.setHeight(fontMetrics.height());
         textRect.setRight(textRect.right() - 7);
-
+        painter->setPen(tokens.color("text"));
         painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, textToDraw);
+        textEnd += fontMetrics.horizontalAdvance(textToDraw) + 8;
+
+        const QString count = QString::number(items().size());
+        QFont countFont(QApplication::font());
+        countFont.setPointSizeF(countFont.pointSizeF() * 0.85);
+        countFont.setBold(true);
+        const QFontMetrics countMetrics(countFont);
+        const QRect pill(textEnd, centerHeight - countMetrics.height() / 2 - 1, countMetrics.horizontalAdvance(count) + 12,
+                         countMetrics.height() + 2);
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(tokens.color("hover"));
+        painter->drawRoundedRect(pill, pill.height() / 2.0, pill.height() / 2.0);
+        painter->setFont(countFont);
+        painter->setPen(tokens.color("textMuted"));
+        painter->drawText(pill, Qt::AlignCenter, count);
+        textEnd = pill.right() + 10;
     }
-    // END: text
+    // END: text and item count
 
     // BEGIN: horizontal line
     {
-        penColor.setAlphaF(0.05f);
-        pen.setColor(penColor);
-        painter->setPen(pen);
-        // startPoint is left + arrow + text + space
-        const int startPoint =
-            optRect.left() + fontMetrics.height() + fontMetrics.size(Qt::AlignLeft | Qt::AlignVCenter, textToDraw).width() + 20;
         painter->setRenderHint(QPainter::Antialiasing, false);
-        QPolygon polygon;
-        // for some reason the height (yPos) doesn't look centered, so we are adding 1 to the center height
+        painter->setPen(QPen(tokens.color("border"), 1));
         const int lineHeight = centerHeight + 1;
-        polygon << QPoint(startPoint, lineHeight) << QPoint(optRect.right() - 3, lineHeight);
-        painter->drawPolyline(polygon);
+        if (textEnd < optRect.right() - 3) {
+            painter->drawLine(QPoint(textEnd, lineHeight), QPoint(optRect.right() - 3, lineHeight));
+        }
     }
     // END: horizontal line
+    painter->restore();
 }
 
 int VisualGroup::totalHeight() const

@@ -1,5 +1,5 @@
 name: Package for macOS
-description: Create a macOS package for Prism Launcher
+description: Create a macOS package for Prixum Launcher
 
 inputs:
   version:
@@ -62,7 +62,7 @@ runs:
         cmake --install ${{ env.BUILD_DIR }} --config ${{ inputs.build-type }}
 
         cd ${{ env.INSTALL_DIR }}
-        chmod +x "PrismLauncher.app/Contents/MacOS/prismlauncher"
+        chmod +x "PrixumLauncher.app/Contents/MacOS/prixumlauncher"
 
         if [ -n '${{ inputs.apple-codesign-id }}' ]; then
           APPLE_CODESIGN_ID='${{ inputs.apple-codesign-id }}'
@@ -72,8 +72,8 @@ runs:
           ENTITLEMENTS_FILE='../program_info/AdhocSignedApp.entitlements'
         fi
 
-        sudo codesign --sign "$APPLE_CODESIGN_ID" --deep --force --entitlements "$ENTITLEMENTS_FILE" --options runtime "PrismLauncher.app/Contents/MacOS/prismlauncher"
-        mv "PrismLauncher.app" "Prism Launcher.app"
+        sudo codesign --sign "$APPLE_CODESIGN_ID" --deep --force --entitlements "$ENTITLEMENTS_FILE" --options runtime "PrixumLauncher.app/Contents/MacOS/prixumlauncher"
+        mv "PrixumLauncher.app" "Prixum Launcher.app"
 
     - name: Notarize
       shell: bash
@@ -83,18 +83,31 @@ runs:
         cd ${{ env.INSTALL_DIR }}
 
         if [ -n '${{ inputs.apple-notarize-password }}' ]; then
-          ditto -c -k --sequesterRsrc --keepParent "Prism Launcher.app" ../PrismLauncher.zip
-          xcrun notarytool submit ../PrismLauncher.zip \
+          ditto -c -k --sequesterRsrc --keepParent "Prixum Launcher.app" ../PrixumLauncher.zip
+          xcrun notarytool submit ../PrixumLauncher.zip \
             --wait --progress \
             --apple-id '${{ inputs.apple-notarize-apple-id }}' \
             --team-id '${{ inputs.apple-notarize-team-id }}' \
             --password '${{ inputs.apple-notarize-password }}'
 
-          xcrun stapler staple "Prism Launcher.app"
+          xcrun stapler staple "Prixum Launcher.app"
         else
           echo ":warning: Skipping notarization as credentials are not present." >> $GITHUB_STEP_SUMMARY
         fi
-        ditto -c -k --sequesterRsrc --keepParent "Prism Launcher.app" ../PrismLauncher.zip
+        ditto -c -k --sequesterRsrc --keepParent "Prixum Launcher.app" ../PrixumLauncher.zip
+
+    - name: Create portable zip
+      shell: bash
+      env:
+        INSTALL_DIR: install
+      run: |
+        # a "UserData" folder next to the app keeps all data inside this folder
+        mkdir -p "portable/Prixum Launcher/UserData"
+        cp -R "${{ env.INSTALL_DIR }}/Prixum Launcher.app" "portable/Prixum Launcher/"
+        printf '%s\n' "Prixum Launcher keeps its instances, accounts and settings in this folder." \
+          "Move the whole \"Prixum Launcher\" folder to take everything with you." > "portable/Prixum Launcher/UserData/README.txt"
+        cd portable
+        ditto -c -k --sequesterRsrc --keepParent "Prixum Launcher" ../PrixumLauncher-portable.zip
 
     - name: Create DMG
       shell: bash
@@ -104,23 +117,23 @@ runs:
         cd ${{ env.INSTALL_DIR }}
 
         mkdir -p src
-        cp -R "Prism Launcher.app" src/
+        cp -R "Prixum Launcher.app" src/
 
         ln -s /Applications src/
 
         hdiutil create \
-            -volname "Prism Launcher ${{ inputs.version }}" \
+            -volname "Prixum Launcher ${{ inputs.version }}" \
             -srcfolder src \
             -ov -format ULMO \
-            "../PrismLauncher.dmg"
+            "../PrixumLauncher.dmg"
 
     - name: Make Sparkle signature
       shell: bash
       run: |
         if [ '${{ inputs.sparkle-ed25519-key }}' != '' ]; then
           echo '${{ inputs.sparkle-ed25519-key }}' > ed25519-priv.pem
-          signature_zip=$(/opt/homebrew/opt/openssl@3/bin/openssl pkeyutl -sign -rawin -in ${{ github.workspace }}/PrismLauncher.zip -inkey ed25519-priv.pem | openssl base64 | tr -d \\n)
-          signature_dmg=$(/opt/homebrew/opt/openssl@3/bin/openssl pkeyutl -sign -rawin -in ${{ github.workspace }}/PrismLauncher.dmg -inkey ed25519-priv.pem | openssl base64 | tr -d \\n) 
+          signature_zip=$(/opt/homebrew/opt/openssl@3/bin/openssl pkeyutl -sign -rawin -in ${{ github.workspace }}/PrixumLauncher.zip -inkey ed25519-priv.pem | openssl base64 | tr -d \\n)
+          signature_dmg=$(/opt/homebrew/opt/openssl@3/bin/openssl pkeyutl -sign -rawin -in ${{ github.workspace }}/PrixumLauncher.dmg -inkey ed25519-priv.pem | openssl base64 | tr -d \\n) 
           rm ed25519-priv.pem
           cat >> $GITHUB_STEP_SUMMARY << EOF
         ### Artifact Information :information_source:
@@ -137,11 +150,17 @@ runs:
     - name: Upload binary tarball
       uses: actions/upload-artifact@v7
       with:
-        name: PrismLauncher-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}
-        path: PrismLauncher.zip
+        name: PrixumLauncher-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}
+        path: PrixumLauncher.zip
+
+    - name: Upload portable zip
+      uses: actions/upload-artifact@v7
+      with:
+        name: PrixumLauncher-${{ inputs.artifact-name }}-Portable-${{ inputs.version }}-${{ inputs.build-type }}
+        path: PrixumLauncher-portable.zip
 
     - name: Upload disk image
       uses: actions/upload-artifact@v7
       with:
-        name: PrismLauncher-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}.dmg
-        path: PrismLauncher.dmg
+        name: PrixumLauncher-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}.dmg
+        path: PrixumLauncher.dmg

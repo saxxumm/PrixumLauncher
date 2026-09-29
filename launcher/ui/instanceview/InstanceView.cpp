@@ -50,6 +50,8 @@
 
 #include "VisualGroup.h"
 #include "ui/themes/CatPainter.h"
+#include "ui/themes/NovaIcons.h"
+#include "ui/themes/NovaTheme.h"
 #include "ui/themes/ThemeManager.h"
 
 #include <Application.h>
@@ -72,6 +74,10 @@ InstanceView::InstanceView(QWidget* parent) : QAbstractItemView(parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setAcceptDrops(true);
     setAutoScroll(true);
+    setMouseTracking(true);
+    viewport()->setMouseTracking(true);
+    m_emptyTitle = tr("Welcome!");
+    m_emptySubtitle = tr("Click \"Add Instance\" to get started.");
     setPaintCat(APPLICATION->settings()->get("TheCat").toBool());
     connect(verticalScrollBar(), &QScrollBar::valueChanged, viewport(), QOverload<>::of(&QWidget::update));
     connect(horizontalScrollBar(), &QScrollBar::valueChanged, viewport(), QOverload<>::of(&QWidget::update));
@@ -317,9 +323,50 @@ void InstanceView::mousePressEvent(QMouseEvent* event)
     }
 }
 
+void InstanceView::setItemWidth(int width)
+{
+    if (width == m_itemWidth) {
+        return;
+    }
+    m_itemWidth = width;
+    m_geometryCache.clear();
+    scheduleDelayedItemsLayout();
+    viewport()->update();
+}
+
+void InstanceView::setEmptyText(const QString& title, const QString& subtitle)
+{
+    m_emptyTitle = title;
+    m_emptySubtitle = subtitle;
+    viewport()->update();
+}
+
+bool InstanceView::viewportEvent(QEvent* event)
+{
+    if (event->type() == QEvent::Leave && m_hoverIndex.isValid()) {
+        const QRect old = visualRect(m_hoverIndex);
+        m_hoverIndex = QPersistentModelIndex();
+        viewport()->update(old);
+    }
+    return QAbstractItemView::viewportEvent(event);
+}
+
 void InstanceView::mouseMoveEvent(QMouseEvent* event)
 {
     executeDelayedItemsLayout();
+
+    if (event->buttons() == Qt::NoButton) {
+        const QPersistentModelIndex hovered(indexAt(event->pos()));
+        if (hovered != m_hoverIndex) {
+            if (m_hoverIndex.isValid()) {
+                viewport()->update(visualRect(m_hoverIndex));
+            }
+            m_hoverIndex = hovered;
+            if (m_hoverIndex.isValid()) {
+                viewport()->update(visualRect(m_hoverIndex));
+            }
+        }
+    }
 
     QPoint topLeft;
     QPoint visualPos = event->pos();
@@ -469,41 +516,47 @@ void InstanceView::paintEvent([[maybe_unused]] QPaintEvent* event)
 
     if (model()->rowCount() == 0) {
         painter.save();
-        QString emptyString = tr("Welcome!") + "\n" + tr("Click \"Add Instance\" to get started.");
-
-        // calculate the rect for the overlay
         painter.setRenderHint(QPainter::Antialiasing, true);
-        QFont font("sans", 20);
-        font.setBold(true);
+        const auto tokens = Nova::current();
 
-        QRect bounds = viewport()->geometry();
-        bounds.moveTop(0);
-        auto innerBounds = bounds;
-        innerBounds.adjust(10, 10, -10, -10);
-
-        QColor background = QApplication::palette().color(QPalette::WindowText);
-        QColor foreground = QApplication::palette().color(QPalette::Base);
-        foreground.setAlpha(190);
-        painter.setFont(font);
-        auto fontMetrics = painter.fontMetrics();
-        auto textRect = fontMetrics.boundingRect(innerBounds, Qt::AlignHCenter | Qt::TextWordWrap, emptyString);
-        textRect.moveCenter(bounds.center());
-
-        auto wrapRect = textRect;
-        wrapRect.adjust(-10, -10, 10, 10);
-
-        // check if we are allowed to draw in our area
-        if (!event->rect().intersects(wrapRect)) {
+        QRect bounds = viewport()->rect().adjusted(18, 18, -18, -18);
+        if (bounds.width() < 60 || bounds.height() < 60) {
+            painter.restore();
             return;
         }
+        // a drop zone, modpacks and instances can be dropped here
+        QPen dashed(tokens.color("borderStrong"), 1.5, Qt::DashLine);
+        dashed.setDashPattern({ 4, 4 });
+        painter.setPen(dashed);
+        painter.setBrush(Qt::NoBrush);
+        const qreal radius = std::min(tokens.metric("radius"), 18);
+        painter.drawRoundedRect(QRectF(bounds).adjusted(0.5, 0.5, -0.5, -0.5), radius, radius);
 
-        painter.setBrush(QBrush(background));
-        painter.setPen(foreground);
-        painter.drawRoundedRect(wrapRect, 5.0, 5.0);
+        QFont titleFont = font();
+        titleFont.setBold(true);
+        titleFont.setPointSizeF(titleFont.pointSizeF() * 1.6);
+        const QFontMetrics titleMetrics(titleFont);
+        const QFontMetrics subtitleMetrics(font());
+        const int textWidth = std::min(bounds.width() - 40, 460);
+        const QRect titleBox = titleMetrics.boundingRect(QRect(0, 0, textWidth, 1000), Qt::AlignHCenter | Qt::TextWordWrap, m_emptyTitle);
+        const QRect subtitleBox =
+            subtitleMetrics.boundingRect(QRect(0, 0, textWidth, 1000), Qt::AlignHCenter | Qt::TextWordWrap, m_emptySubtitle);
+        const int iconSize = 44;
+        const int total = iconSize + 16 + titleBox.height() + 6 + subtitleBox.height();
+        int y = bounds.center().y() - total / 2;
 
-        painter.setPen(foreground);
-        painter.setFont(font);
-        painter.drawText(textRect, Qt::AlignHCenter | Qt::TextWordWrap, emptyString);
+        NovaIcons::icon("library", NovaIcons::Tint::Muted)
+            .paint(&painter, QRect(bounds.center().x() - iconSize / 2, y, iconSize, iconSize));
+        y += iconSize + 16;
+        painter.setFont(titleFont);
+        painter.setPen(tokens.color("text"));
+        painter.drawText(QRect(bounds.center().x() - textWidth / 2, y, textWidth, titleBox.height()), Qt::AlignHCenter | Qt::TextWordWrap,
+                         m_emptyTitle);
+        y += titleBox.height() + 6;
+        painter.setFont(font());
+        painter.setPen(tokens.color("textMuted"));
+        painter.drawText(QRect(bounds.center().x() - textWidth / 2, y, textWidth, subtitleBox.height()),
+                         Qt::AlignHCenter | Qt::TextWordWrap, m_emptySubtitle);
 
         painter.restore();
         return;
@@ -538,6 +591,11 @@ void InstanceView::paintEvent([[maybe_unused]] QPaintEvent* event)
             option.state &= ~QStyle::State_Selected;
         }
         option.state |= (index == currentIndex()) ? QStyle::State_HasFocus : QStyle::State_None;
+        if (index == m_hoverIndex) {
+            option.state |= QStyle::State_MouseOver;
+        } else {
+            option.state &= ~QStyle::State_MouseOver;
+        }
         if (!(flags & Qt::ItemIsEnabled)) {
             option.state &= ~QStyle::State_Enabled;
         }

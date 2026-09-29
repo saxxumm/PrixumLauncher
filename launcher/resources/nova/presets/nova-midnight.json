@@ -1,0 +1,35 @@
+{
+    "format": "nova",
+    "name": "Nova Midnight",
+    "author": "Prism Launcher",
+    "base": "dark",
+    "colors": {
+        "window": "#0d0f1a",
+        "sidebar": "#0a0c15",
+        "surface": "#141729",
+        "surfaceAlt": "#1a1e33",
+        "hover": "#242945",
+        "border": "#262b45",
+        "text": "#e6e8f5",
+        "textMuted": "#8a90b3",
+        "link": "#9fb0ff",
+        "accent": "#8b7bff",
+        "accentText": "#0d0b1f",
+        "success": "#4ade80",
+        "warning": "#fbbf24",
+        "danger": "#fb7185",
+        "tooltip": "#1f2340",
+        "tooltipText": "#e6e8f5"
+    },
+    "metrics": {
+        "radius": 14,
+        "controlRadius": 9,
+        "density": 6,
+        "fontSize": 0,
+        "sidebarWidth": 240,
+        "inspectorWidth": 300,
+        "cardWidth": 112,
+        "iconSize": 48,
+        "fontFamily": ""
+    }
+}

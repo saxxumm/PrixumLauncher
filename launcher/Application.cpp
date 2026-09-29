@@ -163,9 +163,7 @@
 #include <windows.h>
 #endif
 
-#if defined(Q_OS_WIN32) || defined(Q_OS_MAC)
 #include <QStyleHints>
-#endif
 
 #include "console/Console.h"
 
@@ -427,6 +425,13 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
             adjustedBy = "Portable data path";
             m_portable = true;
         }
+#else
+        // writing into the signed bundle is not allowed, a "UserData" folder next to the .app makes it portable instead
+        if (auto portableUserData = FS::PathCombine(m_rootPath, "..", "UserData"); QDir(portableUserData).exists()) {
+            dataPath = QDir(portableUserData).absolutePath();
+            adjustedBy = "Portable user data path";
+            m_portable = true;
+        }
 #endif
     }
 
@@ -595,9 +600,15 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
     }
 
     {
+        // Prixum is a fork of Prism Launcher, so that is the most likely place to find old data
         auto migrated = handleDataMigration(
-            dataPath, FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "../../PolyMC"), "PolyMC",
-            "polymc.cfg");
+            dataPath, FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "../../PrismLauncher"),
+            "PrismLauncher", "prismlauncher.cfg");
+        if (!migrated) {
+            migrated = handleDataMigration(
+                dataPath, FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "../../PolyMC"), "PolyMC",
+                "polymc.cfg");
+        }
         if (!migrated) {
             handleDataMigration(dataPath,
                                 FS::PathCombine(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), "../../multimc"),
@@ -653,12 +664,19 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
     // Initialize application settings
     {
         // Provide a fallback for migration from PolyMC
-        m_settings.reset(new INISettingsObject({ BuildConfig.LAUNCHER_CONFIGFILE, "polymc.cfg", "multimc.cfg" }, this));
+        m_settings.reset(
+            new INISettingsObject({ BuildConfig.LAUNCHER_CONFIGFILE, "prismlauncher.cfg", "polymc.cfg", "multimc.cfg" }, this));
 
         // Theming
         m_settings->registerSetting("IconTheme", QString());
         m_settings->registerSetting("ApplicationTheme", QString());
         m_settings->registerSetting("BackgroundCat", QString("kitteh"));
+        // switch everybody to the Nova design once, afterwards the user's choice is kept
+        m_settings->registerSetting("NovaDesignIntroduced", false);
+        // Nova main window layout
+        m_settings->registerSetting("NovaSidebarCompact", false);
+        m_settings->registerSetting("NovaInspectorVisible", true);
+        m_settings->registerSetting("NovaNewsVisible", true);
 
         // Remembered state
         m_settings->registerSetting("LastUsedGroupForNewInstance", QString());
@@ -786,6 +804,16 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("EnableMangoHud", false);
         m_settings->registerSetting("UseDiscreteGpu", false);
         m_settings->registerSetting("UseZink", false);
+
+        // Render scaling (gamescope)
+        m_settings->registerSetting("RenderScaleEnabled", false);
+        m_settings->registerSetting("RenderScalePercent", 50);
+        m_settings->registerSetting("RenderScaleFilter", "nearest");
+        m_settings->registerSetting("RenderScaleMode", "fit");
+        m_settings->registerSetting("RenderScaleFullscreen", false);
+        m_settings->registerSetting("RenderScaleGrabCursor", true);
+        m_settings->registerSetting("RenderScaleSharpness", 2);
+        m_settings->registerSetting("RenderScaleExtraArgs", "");
 
         // Game time
         m_settings->registerSetting("ShowGameTime", true);
@@ -977,6 +1005,12 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
     // Themes
     m_themeManager = std::make_unique<ThemeManager>();
+    if (!m_settings->get("NovaDesignIntroduced").toBool()) {
+        m_settings->set("NovaDesignIntroduced", true);
+        const bool light = QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light;
+        m_settings->set("ApplicationTheme", light ? QStringLiteral("nova-sakura") : QStringLiteral("nova-prixum"));
+        m_settings->set("IconTheme", QStringLiteral("nova"));
+    }
 
 #ifdef Q_OS_MACOS
     // for macOS: getting directory settings will generate URL security-scoped bookmarks if needed and not present
@@ -1278,15 +1312,11 @@ bool Application::createSetupWizard()
     if (wizardRequired) {
         // set default theme after going into theme wizard
         if (!validIcons) {
-            settings()->set("IconTheme", QString("pe_colored"));
+            settings()->set("IconTheme", QString("nova"));
         }
         if (!validWidgets) {
-#if defined(Q_OS_WIN32) || defined(Q_OS_MACOS)
-            const QString style =
-                QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark ? QStringLiteral("dark") : QStringLiteral("bright");
-#else
-            const QString style = QStringLiteral("system");
-#endif
+            const QString style = QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light ? QStringLiteral("nova-sakura")
+                                                                                                         : QStringLiteral("nova-prixum");
 
             settings()->set("ApplicationTheme", style);
         }
@@ -2042,6 +2072,11 @@ bool Application::handleDataMigration(const QString& currentData, const QString&
         filters.append(startsWith("libraries/"));
         filters.append(startsWith("mods/"));
         filters.append(startsWith("themes/"));
+        filters.append(startsWith("java/"));
+        filters.append(startsWith("skins/"));
+        filters.append(startsWith("catpacks/"));
+        filters.append(startsWith("iconthemes/"));
+        filters.append(startsWith("translations/"));
 
         ProgressDialog diag;
         DataMigrationTask task(oldData, currentData, any(std::move(filters)));

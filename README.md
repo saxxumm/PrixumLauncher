@@ -1,8 +1,12 @@
+> [!NOTE]
+> **Prixum Launcher** is a fork of Prism Launcher with the redesigned, fully themeable Nova interface and render scaling.
+> See [PRIXUM.md](PRIXUM.md) (in Russian) for what changed, how to build it and how to edit the design.
+
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="/program_info/org.prismlauncher.PrismLauncher.logo-darkmode.svg">
-  <source media="(prefers-color-scheme: light)" srcset="/program_info/org.prismlauncher.PrismLauncher.logo.svg">
-  <img alt="Prism Launcher" src="/program_info/org.prismlauncher.PrismLauncher.logo.svg" width="40%">
+  <source media="(prefers-color-scheme: dark)" srcset="/program_info/org.prixumlauncher.PrixumLauncher.logo-darkmode.svg">
+  <source media="(prefers-color-scheme: light)" srcset="/program_info/org.prixumlauncher.PrixumLauncher.logo.svg">
+  <img alt="Prixum Launcher" src="/program_info/org.prixumlauncher.PrixumLauncher.logo.svg" width="40%">
 </picture>
 </p>
 

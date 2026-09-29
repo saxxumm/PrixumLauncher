@@ -1,0 +1,11 @@
+[Icon Theme]
+Name=Nova (follows the theme colors)
+Comment=Monochrome icons that are recolored with the active Nova theme
+Inherits=pe_colored
+Directories=scalable
+
+[scalable]
+Size=48
+Type=Scalable
+MinSize=16
+MaxSize=256

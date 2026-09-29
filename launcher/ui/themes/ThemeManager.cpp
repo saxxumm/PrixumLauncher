@@ -21,15 +21,20 @@
 #include <QApplication>
 #include <QDir>
 #include <QDirListing>
+#include <QFileSystemWatcher>
 #include <QIcon>
 #include <QImageReader>
+#include <QRegularExpression>
 #include <QStyle>
 #include <QStyleFactory>
+#include <QTimer>
 #include "Result.h"
 #include "ui/themes/BrightTheme.h"
 #include "ui/themes/CatPack.h"
 #include "ui/themes/CustomTheme.h"
 #include "ui/themes/DarkTheme.h"
+#include "ui/themes/NovaIcons.h"
+#include "ui/themes/NovaTheme.h"
 #include "ui/themes/SystemTheme.h"
 
 #include "Application.h"
@@ -46,6 +51,18 @@ ThemeManager::ThemeManager()
     themeDebugLog() << "System theme seems to be:" << m_defaultStyle;
 
     m_defaultPalette = QApplication::palette();
+    Nova::setSystemFont(QApplication::font());
+
+    m_themeWatcher = std::make_unique<QFileSystemWatcher>();
+    auto scheduleReload = [this] {
+        // editors often save in several steps, only reload once they are done
+        if (!m_reloadPending) {
+            m_reloadPending = true;
+            QTimer::singleShot(250, m_themeWatcher.get(), [this] { reloadCurrentTheme(); });
+        }
+    };
+    QObject::connect(m_themeWatcher.get(), &QFileSystemWatcher::fileChanged, m_themeWatcher.get(), scheduleReload);
+    QObject::connect(m_themeWatcher.get(), &QFileSystemWatcher::directoryChanged, m_themeWatcher.get(), scheduleReload);
 
     initializeThemes();
     initializeCatPacks();
@@ -115,6 +132,12 @@ void ThemeManager::initializeIcons()
         themeDebugLog() << "Loaded Built-In Icon Theme" << id;
     }
 
+    // monochrome icons which follow the colors of the application theme
+    if (IconTheme nova(NovaIcons::s_iconThemeId, ":/nova/icontheme"); nova.load()) {
+        addIconTheme(std::move(nova));
+        themeDebugLog() << "Loaded Built-In Icon Theme" << NovaIcons::s_iconThemeId;
+    }
+
     if (!m_iconThemeFolder.mkpath(".")) {
         themeWarningLog() << "Couldn't create icon theme folder";
     }
@@ -143,6 +166,18 @@ void ThemeManager::initializeWidgets()
     themeDebugLog() << "Loading Built-in Theme:" << darkThemeId;
     themeDebugLog() << "Loading Built-in Theme:" << addTheme(std::make_unique<BrightTheme>());
 
+    themeDebugLog() << "<> Initializing Nova Themes";
+    for (const auto& preset : QDir(":/nova/presets").entryInfoList({ "*.json" }, QDir::Files, QDir::Name)) {
+        auto theme = NovaTheme::fromFile(preset.filePath(), preset.completeBaseName());
+        if (!theme) {
+            themeWarningLog() << "Couldn't load built-in Nova theme" << preset.fileName() << ":" << theme.error();
+            continue;
+        }
+        // built-in presets don't live in a folder
+        auto builtIn = std::make_unique<NovaTheme>((*theme)->id(), (*theme)->name(), (*theme)->tokens());
+        themeDebugLog() << "Loading Built-in Theme:" << addTheme(std::move(builtIn));
+    }
+
     themeDebugLog() << "<> Initializing System Widget Themes";
     QStringList styles = QStyleFactory::keys();
     for (auto& st : styles) {
@@ -166,7 +201,16 @@ void ThemeManager::initializeWidgets()
          QDirListing(m_applicationThemeFolder.path(), QDirListing::IteratorFlag::DirsOnly | QDirListing::IteratorFlag::ResolveSymlinks)) {
         QDir dir(directoryEntry.filePath());
         QFileInfo themeJson(dir.absoluteFilePath("theme.json"));
-        if (themeJson.exists()) {
+        if (themeJson.exists() && NovaTheme::isNovaThemeFile(themeJson.absoluteFilePath())) {
+            // Load Nova token themes
+            themeDebugLog() << "Loading Nova Theme from:" << themeJson.absoluteFilePath();
+            auto theme = NovaTheme::fromFile(themeJson.absoluteFilePath(), dir.dirName());
+            if (theme) {
+                addTheme(std::move(*theme));
+            } else {
+                themeWarningLog() << "Couldn't load Nova theme:" << theme.error();
+            }
+        } else if (themeJson.exists()) {
             // Load "theme.json" based themes
             themeDebugLog() << "Loading JSON Theme from:" << themeJson.absoluteFilePath();
             addTheme(std::make_unique<CustomTheme>(getTheme(darkThemeId), themeJson, true));
@@ -254,7 +298,19 @@ void ThemeManager::setIconTheme(const QString& name)
         return;
     }
 
+    m_currentIconThemeId = name;
+    if (name == NovaIcons::s_iconThemeId) {
+        QIcon::setThemeName(NovaIcons::prepareIconTheme());
+        return;
+    }
     QIcon::setThemeName(name);
+}
+
+void ThemeManager::refreshIconTheme()
+{
+    if (m_currentIconThemeId == NovaIcons::s_iconThemeId) {
+        QIcon::setThemeName(NovaIcons::prepareIconTheme());
+    }
 }
 
 void ThemeManager::setApplicationTheme(const QString& name, bool initial)
@@ -264,10 +320,17 @@ void ThemeManager::setApplicationTheme(const QString& name, bool initial)
     if (themeIter != m_themes.end()) {
         auto& theme = themeIter->second;
         themeDebugLog() << "applying theme" << theme->name();
+        // undo what a previous Nova theme might have changed
+        Nova::setCurrent(nullptr);
+        QApplication::setFont(Nova::systemFont());
         theme->apply(initial);
         setTitlebarColorOfAllWindowsOnMac(qApp->palette().window().color());
 
         m_logColors = theme->logColorScheme();
+        m_currentThemeId = name;
+        refreshIconTheme();
+        watchCurrentTheme();
+        emit APPLICATION->themeApplied();
     } else {
         themeWarningLog() << "Tried to set invalid theme:" << name;
     }
@@ -276,14 +339,15 @@ void ThemeManager::setApplicationTheme(const QString& name, bool initial)
 void ThemeManager::applyCurrentlySelectedTheme(bool initial)
 {
     auto* settings = APPLICATION->settings();
-    setIconTheme(settings->get("IconTheme").toString());
-    themeDebugLog() << "<> Icon theme set.";
     auto applicationTheme = settings->get("ApplicationTheme").toString();
     if (applicationTheme == "") {
         applicationTheme = m_defaultStyle;
     }
     setApplicationTheme(applicationTheme, initial);
     themeDebugLog() << "<> Application theme set.";
+    // after the application theme, the Nova icons take its colors
+    setIconTheme(settings->get("IconTheme").toString());
+    themeDebugLog() << "<> Icon theme set.";
 }
 
 QString ThemeManager::getCatPack(const QString& catName)
@@ -368,4 +432,76 @@ void ThemeManager::refresh()
 
     initializeThemes();
     initializeCatPacks();
+}
+
+NovaTheme* ThemeManager::novaTheme(const QString& id)
+{
+    auto it = m_themes.find(id);
+    return it == m_themes.end() ? nullptr : dynamic_cast<NovaTheme*>(it->second.get());
+}
+
+NovaTheme* ThemeManager::currentNovaTheme()
+{
+    return novaTheme(m_currentThemeId);
+}
+
+QString ThemeManager::uniqueThemeFolderName(const QString& name)
+{
+    QString base = name.toLower();
+    static const QRegularExpression s_invalid("[^a-z0-9_-]+");
+    base.replace(s_invalid, "-");
+    base = base.trimmed();
+    while (base.startsWith('-')) {
+        base.remove(0, 1);
+    }
+    while (base.endsWith('-')) {
+        base.chop(1);
+    }
+    if (base.isEmpty()) {
+        base = "my-theme";
+    }
+    QString candidate = base;
+    for (int i = 2; m_themes.contains(candidate) || m_applicationThemeFolder.exists(candidate); i++) {
+        candidate = QString("%1-%2").arg(base).arg(i);
+    }
+    return candidate;
+}
+
+void ThemeManager::watchCurrentTheme()
+{
+    if (!m_themeWatcher) {
+        return;
+    }
+    if (auto files = m_themeWatcher->files(); !files.isEmpty()) {
+        m_themeWatcher->removePaths(files);
+    }
+    if (auto dirs = m_themeWatcher->directories(); !dirs.isEmpty()) {
+        m_themeWatcher->removePaths(dirs);
+    }
+    auto* theme = currentNovaTheme();
+    if (!theme || theme->isBuiltIn()) {
+        return;
+    }
+    QStringList paths{ theme->directory() };
+    for (const auto& file : theme->watchedFiles()) {
+        if (QFileInfo::exists(file)) {
+            paths << file;
+        }
+    }
+    m_themeWatcher->addPaths(paths);
+}
+
+void ThemeManager::reloadCurrentTheme()
+{
+    m_reloadPending = false;
+    auto* theme = currentNovaTheme();
+    if (!theme || theme->isBuiltIn()) {
+        return;
+    }
+    if (auto result = theme->reload(); !result) {
+        themeWarningLog() << "Couldn't reload theme" << theme->id() << ":" << result.error();
+        return;
+    }
+    themeDebugLog() << "Theme files changed, reloading" << theme->id();
+    setApplicationTheme(m_currentThemeId);
 }

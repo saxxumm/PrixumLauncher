@@ -36,6 +36,7 @@
 
 #include "InstanceWindow.h"
 #include "Application.h"
+#include "ui/themes/NovaIcons.h"
 
 #include <QCloseEvent>
 #include <QHBoxLayout>
@@ -91,6 +92,9 @@ InstanceWindow::InstanceWindow(MinecraftInstance* instance, QWidget* parent) : Q
         m_launchButton->setToolTip(tr("Launch the instance"));
         m_launchButton->setPopupMode(QToolButton::MenuButtonPopup);
         m_launchButton->setMinimumWidth(80);  // HACK!!
+        m_launchButton->setObjectName("novaPlayButton");
+        m_launchButton->setIcon(NovaIcons::icon("play", NovaIcons::Tint::AccentText));
+        m_launchButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         horizontalLayout->addWidget(m_launchButton);
         connect(m_launchButton, &QPushButton::clicked, this, [this] { APPLICATION->launch(m_instance); });
 
@@ -106,6 +110,7 @@ InstanceWindow::InstanceWindow(MinecraftInstance* instance, QWidget* parent) : Q
         m_killButton->setText(tr("&Kill"));
         m_killButton->setToolTip(tr("Kill the running instance"));
         m_killButton->setShortcut(QKeySequence(tr("Ctrl+K")));
+        m_killButton->setIcon(NovaIcons::icon("stop", NovaIcons::Tint::Danger));
         horizontalLayout->addWidget(m_killButton);
         connect(m_killButton, &QPushButton::clicked, this, [this] { APPLICATION->kill(m_instance); });
 

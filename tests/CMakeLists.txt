@@ -69,3 +69,11 @@ ecm_add_test(XmlLogs_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR
 
 ecm_add_test(Commandline_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
     TEST_NAME Commandline)
+
+ecm_add_test(RenderScaling_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
+    TEST_NAME RenderScaling)
+
+ecm_add_test(NovaTheme_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
+    TEST_NAME NovaTheme)
+# needs a QApplication for palettes and fonts, CI has no display
+set_tests_properties(NovaTheme PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

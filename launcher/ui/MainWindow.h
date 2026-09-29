@@ -50,9 +50,10 @@
 
 class LaunchController;
 class NewsChecker;
+class QAbstractButton;
 class QToolButton;
 class InstanceProxyModel;
-class LabeledToolButton;
+class ListViewDelegate;
 class QLabel;
 class MinecraftInstance;
 class MinecraftLauncher;
@@ -60,7 +61,6 @@ class BaseProfilerFactory;
 class InstanceView;
 class KonamiCode;
 class InstanceTask;
-class LabeledToolButton;
 
 namespace Ui {
 class MainWindow;
@@ -210,7 +210,14 @@ class MainWindow : public QMainWindow {
 
     void setStatusBarVisibility(bool);
 
-    void lockToolbars(bool);
+    void setSidebarCompact(bool);
+    void setInspectorVisibility(bool);
+    void setNewsBarVisibility(bool);
+
+    void on_actionThemeEditor_triggered();
+
+    /// sizes and pixmaps that depend on the active theme
+    void applyThemeMetrics();
 
 #ifndef Q_OS_MAC
     void keyReleaseEvent(QKeyEvent* event) override;
@@ -228,6 +235,13 @@ class MainWindow : public QMainWindow {
     void setSelectedInstanceById(const QString& id);
     void updateStatusCenter();
     void setInstanceActionsEnabled(bool enabled);
+    void updateInspector();
+    void updateInstanceCount();
+    void setupNovaIcons();
+
+    /// mirror an action on a button while keeping the button's own look
+    void bindButton(QAbstractButton* button, QAction* action, const QIcon& icon = {});
+    void syncButton(QAbstractButton* button, QAction* action);
 
     void runModalTask(Task* task);
     void instanceFromInstanceTask(InstanceTask* task);
@@ -236,14 +250,15 @@ class MainWindow : public QMainWindow {
     Ui::MainWindow* ui;
     // these are managed by Qt's memory management model!
     InstanceView* view = nullptr;
+    ListViewDelegate* m_delegate = nullptr;
     InstanceProxyModel* proxymodel = nullptr;
-    QToolButton* newsLabel = nullptr;
     QLabel* m_statusLeft = nullptr;
     QLabel* m_statusCenter = nullptr;
-    LabeledToolButton* changeIconButton = nullptr;
-    LabeledToolButton* renameButton = nullptr;
-    QToolButton* helpMenuButton = nullptr;
     KonamiCode* secretEventFilter = nullptr;
+    QList<std::pair<QAbstractButton*, QAction*>> m_boundButtons;
+    /// instance that was selected before the search filter hid it
+    QString m_filterSelection;
+    bool m_filtering = false;
 
     unique_qobject_ptr<NewsChecker> m_newsChecker;
 

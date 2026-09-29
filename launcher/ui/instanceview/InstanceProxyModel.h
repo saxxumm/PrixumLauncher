@@ -24,11 +24,17 @@ class InstanceProxyModel : public QSortFilterProxyModel {
    public:
     InstanceProxyModel(QObject* parent = 0);
 
+    /// only show instances whose name or group contains the text
+    void setFilterText(const QString& text);
+    QString filterText() const { return m_filterText; }
+
    protected:
     QVariant data(const QModelIndex& index, int role) const override;
     bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
     bool subSortLessThan(const QModelIndex& left, const QModelIndex& right) const;
+    bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
 
    private:
     QCollator m_naturalSort;
+    QString m_filterText;
 };

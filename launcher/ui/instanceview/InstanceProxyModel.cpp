@@ -71,3 +71,29 @@ bool InstanceProxyModel::subSortLessThan(const QModelIndex& left, const QModelIn
         return m_naturalSort.compare(pdataLeft->name(), pdataRight->name()) < 0;
     }
 }
+
+void InstanceProxyModel::setFilterText(const QString& text)
+{
+    const QString trimmed = text.trimmed();
+    if (trimmed == m_filterText) {
+        return;
+    }
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    beginFilterChange();
+    m_filterText = trimmed;
+    endFilterChange(QSortFilterProxyModel::Direction::Rows);
+#else
+    m_filterText = trimmed;
+    invalidateRowsFilter();
+#endif
+}
+
+bool InstanceProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const
+{
+    if (m_filterText.isEmpty()) {
+        return true;
+    }
+    const auto index = sourceModel()->index(sourceRow, 0, sourceParent);
+    return index.data(Qt::DisplayRole).toString().contains(m_filterText, Qt::CaseInsensitive) ||
+           index.data(InstanceViewRoles::GroupRole).toString().contains(m_filterText, Qt::CaseInsensitive);
+}

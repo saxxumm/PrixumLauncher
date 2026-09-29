@@ -1,0 +1,35 @@
+{
+    "format": "nova",
+    "name": "Nova Prixum",
+    "author": "Prixum Launcher",
+    "base": "dark",
+    "colors": {
+        "window": "#121014",
+        "sidebar": "#0e0c10",
+        "surface": "#1a171c",
+        "surfaceAlt": "#211d24",
+        "hover": "#2c2630",
+        "border": "#322b36",
+        "text": "#f1e9f0",
+        "textMuted": "#a795a4",
+        "link": "#ff8cc4",
+        "accent": "#ff5fa2",
+        "accentText": "#1a0610",
+        "success": "#3ecf8e",
+        "warning": "#f5b83d",
+        "danger": "#ff5c6c",
+        "tooltip": "#2a2430",
+        "tooltipText": "#f1e9f0"
+    },
+    "metrics": {
+        "radius": 12,
+        "controlRadius": 8,
+        "density": 6,
+        "fontSize": 0,
+        "sidebarWidth": 240,
+        "inspectorWidth": 300,
+        "cardWidth": 112,
+        "iconSize": 48,
+        "fontFamily": ""
+    }
+}

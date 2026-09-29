@@ -74,6 +74,8 @@ env:
 jobs:
   build:
     name: Build (${{ matrix.system }})
+    # needs the Cachix cache of Prism Launcher
+    if: github.repository_owner == 'PrismLauncher'
 
     permissions:
       contents: read

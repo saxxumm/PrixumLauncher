@@ -205,6 +205,9 @@ class Application : public QApplication {
     void globalSettingsApplied();
     int currentCatChanged(int index);
 
+    /// emitted after a (possibly live edited) theme was applied to the application
+    void themeApplied();
+
     void oauthReplyRecieved(QVariantMap);
 
 #ifdef Q_OS_MACOS

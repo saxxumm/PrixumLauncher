@@ -4,7 +4,12 @@ find_package(Java 1.7 REQUIRED COMPONENTS Development)
 
 include(UseJava)
 set(CMAKE_JAVA_JAR_ENTRY_POINT JavaCheck)
-set(CMAKE_JAVA_COMPILE_FLAGS -target 7 -source 7 -Xlint:deprecation -Xlint:unchecked)
+# JDK 20+ can no longer target Java 7, fall back to the oldest release it still supports
+if(Java_VERSION VERSION_GREATER_EQUAL 20)
+    set(CMAKE_JAVA_COMPILE_FLAGS --release 8 -Xlint:-options -Xlint:deprecation -Xlint:unchecked)
+else()
+    set(CMAKE_JAVA_COMPILE_FLAGS -target 7 -source 7 -Xlint:deprecation -Xlint:unchecked)
+endif()
 
 set(SRC
     JavaCheck.java

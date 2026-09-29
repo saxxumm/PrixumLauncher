@@ -165,10 +165,10 @@
           <item>
            <widget class="QCheckBox" name="preferMenuBarCheckBox">
             <property name="toolTip">
-             <string>The menubar is more friendly for keyboard-driven interaction.</string>
+             <string>Shows the menu bar above the sidebar. It is more friendly for keyboard-driven interaction.</string>
             </property>
             <property name="text">
-             <string>&amp;Replace toolbar with menubar</string>
+             <string>Show the classic &amp;menu bar</string>
             </property>
            </widget>
           </item>

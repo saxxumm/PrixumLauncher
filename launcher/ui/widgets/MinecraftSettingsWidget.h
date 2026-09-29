@@ -38,6 +38,7 @@
 
 #include <QWidget>
 #include "JavaSettingsWidget.h"
+#include "RenderScalingWidget.h"
 #include "minecraft/MinecraftInstance.h"
 
 namespace Ui {
@@ -51,6 +52,9 @@ class MinecraftSettingsWidget : public QWidget {
 
     void loadSettings();
     void saveSettings();
+
+   protected:
+    void changeEvent(QEvent* event) override;
 
    private:
     void openGlobalSettings();
@@ -67,5 +71,7 @@ class MinecraftSettingsWidget : public QWidget {
    public:
     Ui::MinecraftSettingsWidget* m_ui;
     JavaSettingsWidget* m_javaSettings = nullptr;
+    RenderScalingWidget* m_renderScaling = nullptr;
+    QWidget* m_renderScalingPage = nullptr;
     bool m_quickPlaySingleplayer = false;
 };

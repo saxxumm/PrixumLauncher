@@ -66,6 +66,7 @@
 #include "minecraft/launch/ModMinecraftJar.h"
 #include "minecraft/launch/PrintInstanceInfo.h"
 #include "minecraft/launch/ReconstructAssets.h"
+#include "minecraft/launch/RenderScaling.h"
 #include "minecraft/launch/ScanModFolders.h"
 #include "minecraft/launch/VerifyJavaInstall.h"
 
@@ -232,6 +233,13 @@ void MinecraftInstance::loadSpecificSettings()
         m_settings->registerOverride(global_settings->getSetting("EnableMangoHud"), performanceOverride);
         m_settings->registerOverride(global_settings->getSetting("UseDiscreteGpu"), performanceOverride);
         m_settings->registerOverride(global_settings->getSetting("UseZink"), performanceOverride);
+
+        // Render scaling
+        auto renderScaleOverride = m_settings->registerSetting("OverrideRenderScale", false);
+        for (const auto* name : { "RenderScaleEnabled", "RenderScalePercent", "RenderScaleFilter", "RenderScaleMode",
+                                  "RenderScaleFullscreen", "RenderScaleGrabCursor", "RenderScaleSharpness", "RenderScaleExtraArgs" }) {
+            m_settings->registerOverride(global_settings->getSetting(name), renderScaleOverride);
+        }
 
         // Miscellaneous
         auto miscellaneousOverride = m_settings->registerSetting("OverrideMiscellaneous", false);
@@ -856,7 +864,12 @@ QString MinecraftInstance::createLaunchScript(AuthSessionPtr session, MinecraftT
     // window size, title and state, legacy
     {
         QString windowParams;
-        if (settings()->get("LaunchMaximized").toBool()) {
+        if (RenderScaling::isActive(settings())) {
+            // the game renders at the reduced resolution, gamescope takes care of the output size
+            const auto config = RenderScaling::readConfig(settings());
+            const auto internal = RenderScaling::internalSize(RenderScaling::outputSize(settings(), config), config.percent);
+            windowParams = QString("%1x%2").arg(internal.width()).arg(internal.height());
+        } else if (settings()->get("LaunchMaximized").toBool()) {
             // FIXME doesn't support maximisation
             if (!isLegacy()) {
                 auto screen = QGuiApplication::primaryScreen();
@@ -1035,6 +1048,23 @@ QStringList MinecraftInstance::verboseDescription(AuthSessionPtr session, Minecr
         out << "Window size: " + QString::number(width) + " x " + QString::number(height);
     }
     out << emptyLine;
+
+    // render scaling
+    if (const auto config = RenderScaling::readConfig(settings); config.enabled) {
+        const auto output = RenderScaling::outputSize(settings, config);
+        const auto internal = RenderScaling::internalSize(output, config.percent);
+        out << "Render scaling:";
+        out << indent + QString("%1% (%2 x %3 -> %4 x %5), filter: %6, mode: %7")
+                            .arg(config.percent)
+                            .arg(internal.width())
+                            .arg(internal.height())
+                            .arg(output.width())
+                            .arg(output.height())
+                            .arg(config.filter, config.scaler);
+        const auto gamescope = RenderScaling::findGamescope();
+        out << indent + (gamescope.isEmpty() ? QString("gamescope: not found, scaling will be skipped") : "gamescope: " + gamescope);
+        out << emptyLine;
+    }
 
     // environment variables
     const QString env = settings->get("Env").toString();

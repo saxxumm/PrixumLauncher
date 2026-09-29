@@ -1,0 +1,35 @@
+{
+    "format": "nova",
+    "name": "Nova AMOLED",
+    "author": "Prism Launcher",
+    "base": "dark",
+    "colors": {
+        "window": "#000000",
+        "sidebar": "#000000",
+        "surface": "#0a0a0a",
+        "surfaceAlt": "#111111",
+        "hover": "#1c1c1c",
+        "border": "#1f1f1f",
+        "text": "#f2f2f2",
+        "textMuted": "#8c8c8c",
+        "link": "#9ab8ff",
+        "accent": "#f2f2f2",
+        "accentText": "#000000",
+        "success": "#4ade80",
+        "warning": "#fbbf24",
+        "danger": "#ff5c5c",
+        "tooltip": "#161616",
+        "tooltipText": "#f2f2f2"
+    },
+    "metrics": {
+        "radius": 12,
+        "controlRadius": 8,
+        "density": 6,
+        "fontSize": 0,
+        "sidebarWidth": 240,
+        "inspectorWidth": 300,
+        "cardWidth": 112,
+        "iconSize": 48,
+        "fontFamily": ""
+    }
+}

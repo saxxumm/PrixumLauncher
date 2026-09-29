@@ -1,0 +1,602 @@
+# Russian translation of the strings added by the Nova redesign.
+# Loaded on top of the regular launcher translation.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: ru\n"
+
+msgctxt "AppearanceWidget"
+msgid "Create or change a theme and see the result immediately."
+msgstr "Создайте или измените тему и сразу увидьте результат."
+
+msgctxt "AppearanceWidget"
+msgid "Theme &Editor..."
+msgstr "&Редактор тем..."
+
+msgctxt "LauncherPage"
+msgid "Show the classic &menu bar"
+msgstr "Показывать классическую строку &меню"
+
+msgctxt "LauncherPage"
+msgid "Shows the menu bar above the sidebar. It is more friendly for keyboard-driven interaction."
+msgstr "Показывает строку меню над боковой панелью. Так удобнее управлять лаунчером с клавиатуры."
+
+msgctxt "LauncherPartLaunch"
+msgid "Render scaling is enabled, but gamescope could not be found. The game will run at its normal resolution.\nInstall gamescope from your distribution's repositories to use render scaling.\n\n"
+msgstr "Масштабирование рендера включено, но gamescope не найден. Игра запустится в обычном разрешении.\nУстановите gamescope из репозиториев вашего дистрибутива, чтобы использовать масштабирование.\n\n"
+
+msgctxt "MainWindow"
+msgid "Broken"
+msgstr "Повреждён"
+
+msgctxt "MainWindow"
+msgid "Click \"Add Instance\" to get started."
+msgstr "Нажмите «Добавить экземпляр», чтобы начать."
+
+msgctxt "MainWindow"
+msgid "Compact Sidebar"
+msgstr "Компактная боковая панель"
+
+msgctxt "MainWindow"
+msgid "Crashed"
+msgstr "Вылетел"
+
+msgctxt "MainWindow"
+msgid "Create or change a theme and see the result immediately."
+msgstr "Создайте или измените тему и сразу увидьте результат."
+
+msgctxt "MainWindow"
+msgid "Instance Panel"
+msgstr "Панель экземпляра"
+
+msgctxt "MainWindow"
+msgid "Instances"
+msgstr "Экземпляры"
+
+msgctxt "MainWindow"
+msgid "Last launched"
+msgstr "Последний запуск"
+
+msgctxt "MainWindow"
+msgid "Last played %1"
+msgstr "Последний запуск: %1"
+
+msgctxt "MainWindow"
+msgid "Launcher"
+msgstr "Лаунчер"
+
+msgctxt "MainWindow"
+msgid "Library"
+msgstr "Библиотека"
+
+msgctxt "MainWindow"
+msgid "Minecraft %1"
+msgstr "Minecraft %1"
+
+msgctxt "MainWindow"
+msgid "Name"
+msgstr "Название"
+
+msgctxt "MainWindow"
+msgid "Never played"
+msgstr "Ещё не играли"
+
+msgctxt "MainWindow"
+msgid "News Bar"
+msgstr "Строка новостей"
+
+msgctxt "MainWindow"
+msgid "No instance matches \"%1\"."
+msgstr "Нет экземпляров по запросу «%1»."
+
+msgctxt "MainWindow"
+msgid "Not launched yet"
+msgstr "Ещё не запускался"
+
+msgctxt "MainWindow"
+msgid "Nothing found"
+msgstr "Ничего не найдено"
+
+msgctxt "MainWindow"
+msgid "Only show icons in the sidebar."
+msgstr "Показывать в боковой панели только значки."
+
+msgctxt "MainWindow"
+msgid "Played for %1"
+msgstr "В игре: %1"
+
+msgctxt "MainWindow"
+msgid "Playtime"
+msgstr "Время в игре"
+
+msgctxt "MainWindow"
+msgid "Ready to play"
+msgstr "Готов к запуску"
+
+msgctxt "MainWindow"
+msgid "Running"
+msgstr "Запущен"
+
+msgctxt "MainWindow"
+msgid "Search instances"
+msgstr "Поиск экземпляров"
+
+msgctxt "MainWindow"
+msgid "Select an instance to see its details and play it."
+msgstr "Выберите экземпляр, чтобы увидеть подробности и запустить его."
+
+msgctxt "MainWindow"
+msgid "Show the panel with details and actions of the selected instance."
+msgstr "Показывать панель с подробностями и действиями выбранного экземпляра."
+
+msgctxt "MainWindow"
+msgid "Sort instances by"
+msgstr "Сортировка экземпляров"
+
+msgctxt "MainWindow"
+msgid "Theme &Editor..."
+msgstr "&Редактор тем..."
+
+msgctxt "MainWindow"
+msgid "Ungrouped"
+msgstr "Без группы"
+
+msgctxt "MainWindow"
+msgid "Unknown version"
+msgstr "Неизвестная версия"
+
+msgctxt "MainWindow"
+msgid "Welcome!"
+msgstr "Добро пожаловать!"
+
+msgctxt "MinecraftSettingsWidget"
+msgid "Render Scaling"
+msgstr "Масштабирование"
+
+msgctxt "QObject"
+msgid "Accent"
+msgstr "Акцент"
+
+msgctxt "QObject"
+msgid "Borders"
+msgstr "Границы"
+
+msgctxt "QObject"
+msgid "Built-in Nova theme"
+msgstr "Встроенная тема Nova"
+
+msgctxt "QObject"
+msgid "Button and input corner radius"
+msgstr "Скругление кнопок и полей"
+
+msgctxt "QObject"
+msgid "Control padding"
+msgstr "Отступы элементов"
+
+msgctxt "QObject"
+msgid "Corner radius"
+msgstr "Скругление углов"
+
+msgctxt "QObject"
+msgid "Couldn't create the folder %1"
+msgstr "Не удалось создать папку %1"
+
+msgctxt "QObject"
+msgid "Custom Nova theme from %1"
+msgstr "Пользовательская тема Nova из %1"
+
+msgctxt "QObject"
+msgid "Danger / errors"
+msgstr "Опасность / ошибки"
+
+msgctxt "QObject"
+msgid "Font size (0 = system)"
+msgstr "Размер шрифта (0 = системный)"
+
+msgctxt "QObject"
+msgid "Hover highlight"
+msgstr "Подсветка при наведении"
+
+msgctxt "QObject"
+msgid "Inputs and lists"
+msgstr "Поля ввода и списки"
+
+msgctxt "QObject"
+msgid "Instance icon size"
+msgstr "Размер значка экземпляра"
+
+msgctxt "QObject"
+msgid "Instance panel width"
+msgstr "Ширина панели экземпляра"
+
+msgctxt "QObject"
+msgid "Instance tile width"
+msgstr "Ширина плитки экземпляра"
+
+msgctxt "QObject"
+msgid "Links"
+msgstr "Ссылки"
+
+msgctxt "QObject"
+msgid "Nova theme by %1"
+msgstr "Тема Nova, автор: %1"
+
+msgctxt "QObject"
+msgid "Panels and cards"
+msgstr "Панели и карточки"
+
+msgctxt "QObject"
+msgid "Secondary text"
+msgstr "Второстепенный текст"
+
+msgctxt "QObject"
+msgid "Sidebar"
+msgstr "Боковая панель"
+
+msgctxt "QObject"
+msgid "Sidebar width"
+msgstr "Ширина боковой панели"
+
+msgctxt "QObject"
+msgid "Status"
+msgstr "Статусы"
+
+msgctxt "QObject"
+msgid "Success / running"
+msgstr "Успех / запущено"
+
+msgctxt "QObject"
+msgid "Surfaces"
+msgstr "Поверхности"
+
+msgctxt "QObject"
+msgid "Text"
+msgstr "Текст"
+
+msgctxt "QObject"
+msgid "Text on accent"
+msgstr "Текст на акценте"
+
+msgctxt "QObject"
+msgid "Tooltip background"
+msgstr "Фон подсказки"
+
+msgctxt "QObject"
+msgid "Tooltip text"
+msgstr "Текст подсказки"
+
+msgctxt "QObject"
+msgid "Warning"
+msgstr "Предупреждение"
+
+msgctxt "QObject"
+msgid "Window background"
+msgstr "Фон окна"
+
+msgctxt "RenderScalePreview"
+msgid "%1% scaled"
+msgstr "масштаб %1%"
+
+msgctxt "RenderScalePreview"
+msgid "Drag to compare the native image (left) with the scaled one (right)."
+msgstr "Потяните, чтобы сравнить исходное изображение (слева) с масштабированным (справа)."
+
+msgctxt "RenderScalePreview"
+msgid "Native"
+msgstr "Исходное"
+
+msgctxt "RenderScalingWidget"
+msgid "&Enable render scaling"
+msgstr "&Включить масштабирование рендера"
+
+msgctxt "RenderScalingWidget"
+msgid "<b>gamescope was not found.</b> Render scaling needs it to upscale the game. Install it from your distribution's repositories (for example <code>sudo pacman -S gamescope</code>, <code>sudo apt install gamescope</code> or <code>sudo dnf install gamescope</code>), then press \"Check again\"."
+msgstr "<b>gamescope не найден.</b> Он нужен, чтобы масштабировать игру. Установите его из репозиториев вашего дистрибутива (например, <code>sudo pacman -S gamescope</code>, <code>sudo apt install gamescope</code> или <code>sudo dnf install gamescope</code>) и нажмите «Проверить снова»."
+
+msgctxt "RenderScalingWidget"
+msgid "AMD FidelityFX Super Resolution (sharpened)"
+msgstr "AMD FidelityFX Super Resolution (с повышением резкости)"
+
+msgctxt "RenderScalingWidget"
+msgid "Additional arguments that are passed to gamescope as is."
+msgstr "Дополнительные аргументы, которые передаются gamescope как есть."
+
+msgctxt "RenderScalingWidget"
+msgid "Check again"
+msgstr "Проверить снова"
+
+msgctxt "RenderScalingWidget"
+msgid "E&xtra gamescope arguments:"
+msgstr "&Доп. аргументы gamescope:"
+
+msgctxt "RenderScalingWidget"
+msgid "Fill, crop the edges"
+msgstr "Заполнить, обрезав края"
+
+msgctxt "RenderScalingWidget"
+msgid "Fit, keep aspect ratio"
+msgstr "Вписать, сохраняя пропорции"
+
+msgctxt "RenderScalingWidget"
+msgid "Integer, pixel perfect multiples only"
+msgstr "Целочисленно, только кратный масштаб"
+
+msgctxt "RenderScalingWidget"
+msgid "Lock the mouse &cursor to the game"
+msgstr "Захватывать &курсор мыши в игре"
+
+msgctxt "RenderScalingWidget"
+msgid "NVIDIA Image Scaling (sharpened)"
+msgstr "NVIDIA Image Scaling (с повышением резкости)"
+
+msgctxt "RenderScalingWidget"
+msgid "Passes --force-grab-cursor to gamescope. Without it the camera may spin when moving the mouse."
+msgstr "Передаёт gamescope параметр --force-grab-cursor. Без него камера может вращаться при движении мыши."
+
+msgctxt "RenderScalingWidget"
+msgid "Render &Scaling"
+msgstr "&Масштабирование рендера"
+
+msgctxt "RenderScalingWidget"
+msgid "Render &resolution:"
+msgstr "&Разрешение рендера:"
+
+msgctxt "RenderScalingWidget"
+msgid "Render scaling relies on gamescope, which is only available on Linux."
+msgstr "Масштабирование работает через gamescope, который есть только в Linux."
+
+msgctxt "RenderScalingWidget"
+msgid "Render the game at a lower resolution and upscale it to the window size. Use it to gain FPS on weak hardware or to get a chunky retro look. Choose a sharp filter for crisp pixels or a smooth one for a soft, blurred image."
+msgstr "Игра рендерится в меньшем разрешении и растягивается до размера окна. Это поднимает FPS на слабом железе или даёт пиксельный ретро-вид. Выберите чёткий фильтр для резких пикселей или сглаживающий для мягкой, размытой картинки."
+
+msgctxt "RenderScalingWidget"
+msgid "S&harpness:"
+msgstr "Р&езкость:"
+
+msgctxt "RenderScalingWidget"
+msgid "Scaling &mode:"
+msgstr "Ре&жим масштабирования:"
+
+msgctxt "RenderScalingWidget"
+msgid "Sharp pixels: nearest neighbour, no blur"
+msgstr "Чёткие пиксели: ближайший сосед, без размытия"
+
+msgctxt "RenderScalingWidget"
+msgid "Sharpening strength of FSR and NIS. Left is softer, right is sharper."
+msgstr "Сила повышения резкости FSR и NIS. Левее — мягче, правее — резче."
+
+msgctxt "RenderScalingWidget"
+msgid "Smooth: bilinear, soft blur"
+msgstr "Сглаживание: билинейный фильтр, мягкое размытие"
+
+msgctxt "RenderScalingWidget"
+msgid "Start in f&ullscreen"
+msgstr "Запускать в &полноэкранном режиме"
+
+msgctxt "RenderScalingWidget"
+msgid "Stretch to fill the window"
+msgstr "Растянуть на всё окно"
+
+msgctxt "RenderScalingWidget"
+msgid "The game renders at <b>%1 × %2</b> and is shown at %3 × %4."
+msgstr "Игра рендерится в <b>%1 × %2</b> и выводится в %3 × %4."
+
+msgctxt "RenderScalingWidget"
+msgid "Tip: 50%, 33% or 25% keep every pixel the same size."
+msgstr "Совет: при 50%, 33% или 25% все пиксели одного размера."
+
+msgctxt "RenderScalingWidget"
+msgid "Upscaling &filter:"
+msgstr "&Фильтр масштабирования:"
+
+msgctxt "RenderScalingWidget"
+msgid "e.g. -r 60 --adaptive-sync"
+msgstr "например, -r 60 --adaptive-sync"
+
+msgctxt "RenderScalingWidget"
+msgid "gamescope found: %1"
+msgstr "gamescope найден: %1"
+
+msgctxt "RenderScalingWidget"
+msgid "gamescope opens in fullscreen and the screen resolution is used as the output size."
+msgstr "gamescope откроется на весь экран, а выходным разрешением станет разрешение экрана."
+
+msgctxt "ThemeEditorDialog"
+msgid "%1 (Custom)"
+msgstr "%1 (своя)"
+
+msgctxt "ThemeEditorDialog"
+msgid "&Apply"
+msgstr "&Применить"
+
+msgctxt "ThemeEditorDialog"
+msgid "&Name:"
+msgstr "&Название:"
+
+msgctxt "ThemeEditorDialog"
+msgid "&Save"
+msgstr "&Сохранить"
+
+msgctxt "ThemeEditorDialog"
+msgid "&Start from:"
+msgstr "&Основа:"
+
+msgctxt "ThemeEditorDialog"
+msgid "Cancel"
+msgstr "Отмена"
+
+msgctxt "ThemeEditorDialog"
+msgid "Changes are applied to the whole launcher right away. Themes are saved as theme.json and style.qss in %1. You can also edit those files in any text editor, the launcher reloads them as soon as they change."
+msgstr "Изменения сразу применяются ко всему лаунчеру. Темы сохраняются как theme.json и style.qss в %1. Эти файлы можно править в любом текстовом редакторе — лаунчер перезагрузит тему, как только они изменятся."
+
+msgctxt "ThemeEditorDialog"
+msgid "Choose %1"
+msgstr "Выберите: %1"
+
+msgctxt "ThemeEditorDialog"
+msgid "Colors"
+msgstr "Цвета"
+
+msgctxt "ThemeEditorDialog"
+msgid "Copy the complete built-in stylesheet into the editor."
+msgstr "Скопировать встроенную таблицу стилей целиком в редактор."
+
+msgctxt "ThemeEditorDialog"
+msgid "Couldn't export the theme"
+msgstr "Не удалось экспортировать тему"
+
+msgctxt "ThemeEditorDialog"
+msgid "Couldn't save the theme"
+msgstr "Не удалось сохранить тему"
+
+msgctxt "ThemeEditorDialog"
+msgid "Disabled"
+msgstr "Неактивна"
+
+msgctxt "ThemeEditorDialog"
+msgid "E&xport..."
+msgstr "&Экспорт..."
+
+msgctxt "ThemeEditorDialog"
+msgid "Enable mods"
+msgstr "Включить моды"
+
+msgctxt "ThemeEditorDialog"
+msgid "Every window of the launcher follows these settings, including the main window behind this dialog."
+msgstr "Все окна лаунчера следуют этим настройкам, включая главное окно за этим диалогом."
+
+msgctxt "ThemeEditorDialog"
+msgid "Export theme into folder"
+msgstr "Экспортировать тему в папку"
+
+msgctxt "ThemeEditorDialog"
+msgid "Fine tuning"
+msgstr "Тонкая настройка"
+
+msgctxt "ThemeEditorDialog"
+msgid "Folder"
+msgstr "Папка"
+
+msgctxt "ThemeEditorDialog"
+msgid "Font"
+msgstr "Шрифт"
+
+msgctxt "ThemeEditorDialog"
+msgid "Insert Base Style"
+msgstr "Вставить базовый стиль"
+
+msgctxt "ThemeEditorDialog"
+msgid "Insert base style"
+msgstr "Вставить базовый стиль"
+
+msgctxt "ThemeEditorDialog"
+msgid "Leave empty to calculate this color from the base colors."
+msgstr "Оставьте пустым, чтобы цвет вычислялся из основных."
+
+msgctxt "ThemeEditorDialog"
+msgid "Maximum:"
+msgstr "Максимум:"
+
+msgctxt "ThemeEditorDialog"
+msgid "Memory"
+msgstr "Память"
+
+msgctxt "ThemeEditorDialog"
+msgid "Mods"
+msgstr "Моды"
+
+msgctxt "ThemeEditorDialog"
+msgid "My Theme"
+msgstr "Моя тема"
+
+msgctxt "ThemeEditorDialog"
+msgid "Only your stylesheet is used. Insert the base style first to start from a copy of it."
+msgstr "Используется только ваша таблица стилей. Сначала вставьте базовый стиль, чтобы начать с его копии."
+
+msgctxt "ThemeEditorDialog"
+msgid "Open Themes &Folder"
+msgstr "Открыть &папку тем"
+
+msgctxt "ThemeEditorDialog"
+msgid "Play"
+msgstr "Играть"
+
+msgctxt "ThemeEditorDialog"
+msgid "Preview"
+msgstr "Предпросмотр"
+
+msgctxt "ThemeEditorDialog"
+msgid "Qt stylesheet rules added on top of the base style. Every token can be used, for example <code>@accent</code>, <code>@surface</code>, <code>@radius</code> or <code>@padY</code>."
+msgstr "Правила Qt Style Sheets поверх базового стиля. Можно использовать любые токены, например <code>@accent</code>, <code>@surface</code>, <code>@radius</code> или <code>@padY</code>."
+
+msgctxt "ThemeEditorDialog"
+msgid "Release"
+msgstr "Релиз"
+
+msgctxt "ThemeEditorDialog"
+msgid "Replace the base style completely"
+msgstr "Полностью заменить базовый стиль"
+
+msgctxt "ThemeEditorDialog"
+msgid "Save as &New"
+msgstr "Сохранить как &новую"
+
+msgctxt "ThemeEditorDialog"
+msgid "Search mods..."
+msgstr "Поиск модов..."
+
+msgctxt "ThemeEditorDialog"
+msgid "Settings"
+msgstr "Настройки"
+
+msgctxt "ThemeEditorDialog"
+msgid "Shape && Size"
+msgstr "Форма и размеры"
+
+msgctxt "ThemeEditorDialog"
+msgid "Shape and size"
+msgstr "Форма и размеры"
+
+msgctxt "ThemeEditorDialog"
+msgid "Snapshot"
+msgstr "Снапшот"
+
+msgctxt "ThemeEditorDialog"
+msgid "Stylesheet"
+msgstr "Стили (QSS)"
+
+msgctxt "ThemeEditorDialog"
+msgid "The theme was exported to %1.\nCopy this folder into the themes folder of any launcher to use it."
+msgstr "Тема экспортирована в %1.\nСкопируйте эту папку в папку тем любого лаунчера, чтобы её использовать."
+
+msgctxt "ThemeEditorDialog"
+msgid "Theme Editor"
+msgstr "Редактор тем"
+
+msgctxt "ThemeEditorDialog"
+msgid "Theme exported"
+msgstr "Тема экспортирована"
+
+msgctxt "ThemeEditorDialog"
+msgid "These are calculated from the colors above unless you set them yourself."
+msgstr "Эти цвета вычисляются из основных, если не задать их вручную."
+
+msgctxt "ThemeEditorDialog"
+msgid "This replaces the current contents of the editor. Continue?"
+msgstr "Текущее содержимое редактора будет заменено. Продолжить?"
+
+msgctxt "ThemeEditorDialog"
+msgid "Tokens: %1"
+msgstr "Токены: %1"
+
+msgctxt "ThemeEditorDialog"
+msgid "Use the system font"
+msgstr "Использовать системный шрифт"
+
+msgctxt "ThemeEditorDialog"
+msgid "automatic"
+msgstr "автоматически"
+
+msgctxt "MainWindow"
+msgid "Unsupported Modrinth link.\n\n%1 currently only supports modpack links such as modrinth://modpack/fabulously-optimized."
+msgstr "Неподдерживаемая ссылка Modrinth.\n\n%1 пока поддерживает только ссылки на модпаки, например modrinth://modpack/fabulously-optimized."

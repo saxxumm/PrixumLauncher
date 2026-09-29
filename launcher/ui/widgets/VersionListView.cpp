@@ -40,6 +40,7 @@
 #include <QHeaderView>
 #include <QMouseEvent>
 #include <QPainter>
+#include "ui/themes/NovaTheme.h"
 
 VersionListView::VersionListView(QWidget* parent) : QTreeView(parent)
 {
@@ -135,35 +136,26 @@ void VersionListView::paintInfoLabel(QPaintEvent* event) const
     // calculate the rect for the overlay
     QPainter painter(viewport());
     painter.setRenderHint(QPainter::Antialiasing, true);
-    QFont font("sans", 20);
+    QFont font = this->font();
     font.setBold(true);
+    font.setPointSizeF(font.pointSizeF() * 1.3);
 
     QRect bounds = viewport()->geometry();
     bounds.moveTop(0);
     auto innerBounds = bounds;
-    innerBounds.adjust(10, 10, -10, -10);
+    innerBounds.adjust(16, 16, -16, -16);
 
-    QColor background = QApplication::palette().color(QPalette::WindowText);
-    QColor foreground = QApplication::palette().color(QPalette::Base);
-    foreground.setAlpha(190);
     painter.setFont(font);
     auto fontMetrics = painter.fontMetrics();
     auto textRect = fontMetrics.boundingRect(innerBounds, Qt::AlignHCenter | Qt::TextWordWrap, emptyString);
     textRect.moveCenter(bounds.center());
 
-    auto wrapRect = textRect;
-    wrapRect.adjust(-10, -10, 10, 10);
-
     // check if we are allowed to draw in our area
-    if (!event->rect().intersects(wrapRect)) {
+    if (!event->rect().intersects(textRect)) {
         return;
     }
 
-    painter.setBrush(QBrush(background));
-    painter.setPen(foreground);
-    painter.drawRoundedRect(wrapRect, 5.0, 5.0);
-
-    painter.setPen(foreground);
-    painter.setFont(font);
+    const auto tokens = Nova::current();
+    painter.setPen(m_emptyMode == ErrorString ? tokens.color("danger") : tokens.color("textMuted"));
     painter.drawText(textRect, Qt::AlignHCenter | Qt::TextWordWrap, emptyString);
 }

@@ -47,4 +47,5 @@ class LauncherPartLaunch : public LaunchStep {
     MinecraftTarget::Ptr m_targetToJoin;
 
     bool mayProceed = false;
+    bool m_usesRenderScaling = false;
 };

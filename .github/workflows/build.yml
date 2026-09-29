@@ -22,7 +22,7 @@ on:
       build-type:
         description: Type of build (Debug or Release)
         type: string
-        default: Debug
+        default: Release
 
 permissions: {}
 
@@ -88,6 +88,8 @@ jobs:
     env:
       ARTIFACT_NAME: ${{ matrix.artifact-name }}-Qt6
       BUILD_PLATFORM: official
+      # the built-in updater downloads new versions from the releases of this repository
+      UPDATER_GITHUB_REPO: https://github.com/${{ github.repository }}
       BUILD_TYPE: ${{ inputs.build-type || 'Debug' }}
       CMAKE_PRESET: ${{ matrix.cmake-preset }}
 

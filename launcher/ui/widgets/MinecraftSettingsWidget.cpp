@@ -40,6 +40,8 @@
 #include "ui_MinecraftSettingsWidget.h"
 
 #include <QFileDialog>
+#include <QScrollArea>
+#include <QVBoxLayout>
 #include "Application.h"
 #include "BuildConfig.h"
 #include "Json.h"
@@ -128,6 +130,28 @@ MinecraftSettingsWidget::MinecraftSettingsWidget(MinecraftInstance* instance, QW
         connect(latestVersion.get(), &Setting::SettingChanged, this, [this](const Setting&, const QVariant&) {
             m_ui->latestMCVersionGroupBox->setChecked(m_instance->settings()->get("UseLatestMinecraftVersion").toBool());
         });
+    }
+
+    // render scaling gets its own tab right after "Tweaks"
+    {
+        m_renderScaling = new RenderScalingWidget(m_instance != nullptr, this);
+        auto* scroll = new QScrollArea(this);
+        scroll->setWidgetResizable(true);
+        scroll->setFrameShape(QFrame::NoFrame);
+        scroll->setWidget(m_renderScaling);
+        m_renderScalingPage = new QWidget(this);
+        auto* pageLayout = new QVBoxLayout(m_renderScalingPage);
+        pageLayout->setContentsMargins(0, 0, 0, 0);
+        pageLayout->addWidget(scroll);
+        m_ui->settingsTabs->insertTab(m_ui->settingsTabs->indexOf(m_ui->tweaksPage) + 1, m_renderScalingPage, tr("Render Scaling"));
+
+        auto updateWindowSize = [this] {
+            m_renderScaling->setWindowSize({ m_ui->windowWidthSpinBox->value(), m_ui->windowHeightSpinBox->value() },
+                                           m_ui->maximizedCheckBox->isChecked());
+        };
+        connect(m_ui->windowWidthSpinBox, &QSpinBox::valueChanged, this, updateWindowSize);
+        connect(m_ui->windowHeightSpinBox, &QSpinBox::valueChanged, this, updateWindowSize);
+        connect(m_ui->maximizedCheckBox, &QCheckBox::toggled, this, updateWindowSize);
     }
 
     m_ui->maximizedWarning->hide();
@@ -237,6 +261,9 @@ void MinecraftSettingsWidget::loadSettings()
 
     // Performance
     m_ui->perfomanceGroupBox->setChecked(m_instance == nullptr || settings->get("OverridePerformance").toBool());
+    m_renderScaling->loadSettings(settings);
+    m_renderScaling->setWindowSize({ m_ui->windowWidthSpinBox->value(), m_ui->windowHeightSpinBox->value() },
+                                   m_ui->maximizedCheckBox->isChecked());
     m_ui->enableFeralGamemodeCheck->setChecked(settings->get("EnableFeralGamemode").toBool());
     m_ui->enableMangoHud->setChecked(settings->get("EnableMangoHud").toBool());
     m_ui->useDiscreteGpuCheck->setChecked(settings->get("UseDiscreteGpu").toBool());
@@ -453,6 +480,9 @@ void MinecraftSettingsWidget::saveSettings()
         settings->reset("UseZink");
     }
 
+    // Render scaling
+    m_renderScaling->saveSettings(settings);
+
     // Game time
     bool gameTime = m_instance == nullptr || m_ui->gameTimeGroupBox->isChecked();
 
@@ -531,6 +561,14 @@ void MinecraftSettingsWidget::saveSettings()
     if (m_javaSettings != nullptr) {
         m_javaSettings->saveSettings();
     }
+}
+
+void MinecraftSettingsWidget::changeEvent(QEvent* event)
+{
+    if (event->type() == QEvent::LanguageChange) {
+        m_ui->settingsTabs->setTabText(m_ui->settingsTabs->indexOf(m_renderScalingPage), tr("Render Scaling"));
+    }
+    QWidget::changeEvent(event);
 }
 
 void MinecraftSettingsWidget::openGlobalSettings()

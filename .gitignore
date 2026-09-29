@@ -62,3 +62,9 @@ flatbuild
 
 # Snap
 *.snap
+
+# Packaging
+/dist/
+packaging/arch/src/
+packaging/arch/pkg/
+packaging/arch/*.pkg.tar.*

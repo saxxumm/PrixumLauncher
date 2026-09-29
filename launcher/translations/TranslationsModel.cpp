@@ -166,6 +166,8 @@ struct TranslationsModel::Private {
     QString m_selectedLanguage = g_defaultLangCode;
     std::unique_ptr<QTranslator> m_qtTranslator;
     std::unique_ptr<QTranslator> m_appTranslator;
+    // strings of the Nova design, installed last so they win over the downloaded translation
+    std::unique_ptr<QTranslator> m_novaTranslator;
 
     Net::Request* m_indexTask = nullptr;
     QString m_downloadingTranslation;
@@ -457,6 +459,10 @@ bool TranslationsModel::selectLanguage(QString key) const
     }
 
     // uninstall existing translators if there are any
+    if (d->m_novaTranslator) {
+        QCoreApplication::removeTranslator(d->m_novaTranslator.get());
+        d->m_novaTranslator.reset();
+    }
     if (d->m_appTranslator) {
         QCoreApplication::removeTranslator(d->m_appTranslator.get());
         d->m_appTranslator.reset();
@@ -525,6 +531,19 @@ bool TranslationsModel::selectLanguage(QString key) const
         }
     } else {
         d->m_appTranslator.reset();
+    }
+
+    // translations of the Nova design ship with the launcher
+    for (const auto& code : { langCode, langCode.section('_', 0, 0) }) {
+        const QString novaFile = QString(":/nova/i18n/%1.po").arg(code);
+        if (QFileInfo::exists(novaFile)) {
+            d->m_novaTranslator = std::make_unique<POTranslator>(novaFile);
+            if (d->m_novaTranslator->isEmpty() || !QCoreApplication::installTranslator(d->m_novaTranslator.get())) {
+                qWarning() << "Couldn't install the Nova translation" << novaFile;
+                d->m_novaTranslator.reset();
+            }
+            break;
+        }
     }
     d->m_selectedLanguage = langCode;
     return successful;

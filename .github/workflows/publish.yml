@@ -9,6 +9,8 @@ permissions: {}
 jobs:
   winget:
     name: Winget
+    # publishes Prism Launcher itself, never from forks
+    if: github.repository_owner == 'PrismLauncher'
 
     permissions:
       contents: read

@@ -1,0 +1,35 @@
+{
+    "format": "nova",
+    "name": "Nova Light",
+    "author": "Prism Launcher",
+    "base": "light",
+    "colors": {
+        "window": "#f3f4f7",
+        "sidebar": "#eceef2",
+        "surface": "#ffffff",
+        "surfaceAlt": "#f7f8fa",
+        "hover": "#eaecf1",
+        "border": "#dde0e7",
+        "text": "#1b1f27",
+        "textMuted": "#636b7c",
+        "link": "#1a73e8",
+        "accent": "#16a36a",
+        "accentText": "#ffffff",
+        "success": "#16a36a",
+        "warning": "#c98a0b",
+        "danger": "#d93d42",
+        "tooltip": "#1b1f27",
+        "tooltipText": "#f3f4f7"
+    },
+    "metrics": {
+        "radius": 12,
+        "controlRadius": 8,
+        "density": 6,
+        "fontSize": 0,
+        "sidebarWidth": 240,
+        "inspectorWidth": 300,
+        "cardWidth": 112,
+        "iconSize": 48,
+        "fontFamily": ""
+    }
+}

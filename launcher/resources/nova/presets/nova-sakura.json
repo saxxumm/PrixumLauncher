@@ -1,0 +1,35 @@
+{
+    "format": "nova",
+    "name": "Nova Sakura",
+    "author": "Prism Launcher",
+    "base": "light",
+    "colors": {
+        "window": "#fbf6f8",
+        "sidebar": "#f6eef2",
+        "surface": "#ffffff",
+        "surfaceAlt": "#fdf8fa",
+        "hover": "#f5e8ee",
+        "border": "#eed9e2",
+        "text": "#2b1f25",
+        "textMuted": "#8a6f7c",
+        "link": "#c2185b",
+        "accent": "#e0529c",
+        "accentText": "#ffffff",
+        "success": "#2f9e6b",
+        "warning": "#c98a0b",
+        "danger": "#d93d42",
+        "tooltip": "#2b1f25",
+        "tooltipText": "#fbf6f8"
+    },
+    "metrics": {
+        "radius": 16,
+        "controlRadius": 10,
+        "density": 6,
+        "fontSize": 0,
+        "sidebarWidth": 240,
+        "inspectorWidth": 300,
+        "cardWidth": 112,
+        "iconSize": 48,
+        "fontFamily": ""
+    }
+}

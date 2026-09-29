@@ -1,0 +1,48 @@
+# Arch Linux / CachyOS package built straight from this source tree:
+#   cd packaging/arch && makepkg -si
+
+pkgname=prixumlauncher
+pkgver=12.0.0
+pkgrel=1
+pkgdesc="Minecraft launcher with a redesigned, fully themeable interface and render scaling (fork of Prism Launcher)"
+arch=('x86_64' 'aarch64')
+url="https://github.com/PrismLauncher/PrismLauncher"
+license=('GPL-3.0-only')
+depends=('cmark' 'hicolor-icon-theme' 'libarchive' 'qrencode' 'qt6-5compat' 'qt6-base' 'qt6-imageformats'
+         'qt6-networkauth' 'qt6-svg' 'tomlplusplus' 'zlib')
+makedepends=('cmake' 'extra-cmake-modules' 'git' 'java-environment' 'ninja' 'scdoc')
+optdepends=('gamescope: render scaling'
+            'java-runtime: Java for Minecraft if the built-in Java downloader is not used'
+            'gamemode: Feral GameMode support'
+            'mangohud: performance overlay'
+            'glfw: use the system GLFW library'
+            'openal: use the system OpenAL library'
+            'xorg-xrandr: needed by some old Minecraft versions'
+            'flite: in-game narrator')
+
+# the source tree this PKGBUILD lives in
+_srcroot="$(realpath "${startdir}/../..")"
+
+pkgver() {
+    local major minor patch
+    major=$(sed -n 's/^set(Launcher_VERSION_MAJOR \([0-9]*\))/\1/p' "${_srcroot}/CMakeLists.txt")
+    minor=$(sed -n 's/^set(Launcher_VERSION_MINOR \([0-9]*\))/\1/p' "${_srcroot}/CMakeLists.txt")
+    patch=$(sed -n 's/^set(Launcher_VERSION_PATCH \([0-9]*\))/\1/p' "${_srcroot}/CMakeLists.txt")
+    printf '%s.%s.%s' "${major}" "${minor}" "${patch}"
+}
+
+build() {
+    # ECM_DIR can point to a local extra-cmake-modules install when the package is not installed
+    cmake -S "${_srcroot}" -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DBUILD_TESTING=OFF \
+        -DLauncher_BUILD_PLATFORM=archlinux \
+        -DLauncher_ENABLE_JAVA_DOWNLOADER=ON \
+        ${ECM_DIR:+-DECM_DIR="${ECM_DIR}"}
+    cmake --build build
+}
+
+package() {
+    DESTDIR="${pkgdir}" cmake --install build
+}

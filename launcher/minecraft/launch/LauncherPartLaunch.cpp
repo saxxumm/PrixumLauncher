@@ -42,6 +42,7 @@
 #include "FileSystem.h"
 #include "launch/LaunchTask.h"
 #include "minecraft/MinecraftInstance.h"
+#include "minecraft/launch/RenderScaling.h"
 
 #if defined(Q_OS_LINUX) && defined(ENABLE_GAMEMODE)
 #include "gamemode_client.h"
@@ -130,6 +131,7 @@ void LauncherPartLaunch::executeTask()
 
     qDebug() << args.join(' ');
 
+    QString program = javaPath;
     QString wrapperCommandStr = instance->getWrapperCommand().trimmed();
     if (!wrapperCommandStr.isEmpty()) {
         auto wrapperArgs = m_parent->substituteVariables(wrapperCommandStr);
@@ -143,10 +145,33 @@ void LauncherPartLaunch::executeTask()
         }
         emit logLine("Wrapper command is:\n" + wrapperCommandStr + "\n\n", MessageLevel::Launcher);
         args.prepend(javaPath);
-        m_process.start(wrapperCommand, wrapperArgs + args);
-    } else {
-        m_process.start(javaPath, args);
+        args = wrapperArgs + args;
+        program = wrapperCommand;
     }
+
+    // render scaling wraps everything else, so the whole game ends up inside gamescope
+    m_usesRenderScaling = false;
+    if (auto plan = RenderScaling::makePlan(instance->settings()); !plan.output.isEmpty()) {
+        if (plan.executable.isEmpty()) {
+            emit logLine(tr("Render scaling is enabled, but gamescope could not be found. The game will run at its normal resolution.\n"
+                            "Install gamescope from your distribution's repositories to use render scaling.\n\n"),
+                         MessageLevel::Warning);
+        } else {
+            emit logLine(QString("Render scaling: %1x%2 upscaled to %3x%4\nGamescope command is:\n%5 %6\n\n")
+                             .arg(plan.internal.width())
+                             .arg(plan.internal.height())
+                             .arg(plan.output.width())
+                             .arg(plan.output.height())
+                             .arg(plan.executable, plan.arguments.join(' ')),
+                         MessageLevel::Launcher);
+            args.prepend(program);
+            args = plan.arguments + args;
+            program = plan.executable;
+            m_usesRenderScaling = true;
+        }
+    }
+
+    m_process.start(program, args);
 
 #if defined(Q_OS_LINUX) && defined(ENABLE_GAMEMODE)
     if (instance->settings()->get("EnableFeralGamemode").toBool() && APPLICATION->capabilities() & Application::SupportsGameMode) {
@@ -233,6 +258,10 @@ bool LauncherPartLaunch::abort()
     } else {
         auto state = m_process.state();
         if (state == LoggedProcess::Running || state == LoggedProcess::Starting) {
+            if (m_usesRenderScaling) {
+                // take the game down together with its compositor
+                RenderScaling::killProcessTree(m_process.processId());
+            }
             m_process.kill();
         }
     }

@@ -165,7 +165,9 @@ void PageContainer::createUI()
 {
     m_pageStack = new QStackedLayout;
     m_pageList = new PageView;
+    m_pageList->setObjectName("pageList");
     m_header = new QLabel();
+    m_header->setObjectName("pageHeader");
 
     QFont headerLabelFont = m_header->font();
     headerLabelFont.setBold(true);
@@ -179,7 +181,7 @@ void PageContainer::createUI()
     const int leftMargin = APPLICATION->style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
     headerHLayout->addSpacerItem(new QSpacerItem(leftMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
     headerHLayout->addWidget(m_header);
-    headerHLayout->setContentsMargins(0, 6, 0, 0);
+    headerHLayout->setContentsMargins(6, 8, 0, 2);
 
     m_pageStack->setContentsMargins(0, 0, 0, 0);
     m_pageStack->addWidget(new QWidget(this));
@@ -190,6 +192,7 @@ void PageContainer::createUI()
     m_layout->addLayout(m_pageStack, 1, 1, 1, 1);
     m_layout->setColumnStretch(1, 4);
     m_layout->setContentsMargins(0, 0, 0, 0);
+    m_layout->setHorizontalSpacing(12);
     setLayout(m_layout);
 }
 

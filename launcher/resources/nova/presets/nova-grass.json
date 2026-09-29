@@ -1,0 +1,35 @@
+{
+    "format": "nova",
+    "name": "Nova Grass Block",
+    "author": "Prism Launcher",
+    "base": "dark",
+    "colors": {
+        "window": "#14120f",
+        "sidebar": "#100e0b",
+        "surface": "#1c1915",
+        "surfaceAlt": "#231f1a",
+        "hover": "#2e2922",
+        "border": "#352f27",
+        "text": "#efe9df",
+        "textMuted": "#a39a8b",
+        "link": "#8fd3ff",
+        "accent": "#6fbf3a",
+        "accentText": "#0d1a05",
+        "success": "#6fbf3a",
+        "warning": "#e0a93b",
+        "danger": "#e5534b",
+        "tooltip": "#2a251f",
+        "tooltipText": "#efe9df"
+    },
+    "metrics": {
+        "radius": 4,
+        "controlRadius": 3,
+        "density": 6,
+        "fontSize": 0,
+        "sidebarWidth": 240,
+        "inspectorWidth": 300,
+        "cardWidth": 112,
+        "iconSize": 48,
+        "fontFamily": ""
+    }
+}

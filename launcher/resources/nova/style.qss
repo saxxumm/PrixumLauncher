@@ -1,0 +1,1104 @@
+/*
+ * Nova base stylesheet.
+ *
+ * Every "@name" is replaced with a design token of the active theme before the stylesheet is applied.
+ * Colors come from the "colors" section of theme.json, sizes from "metrics" (already with units).
+ * Derived tokens (accentHover, accentSoft, borderStrong, textDisabled, ...) are computed from the base colors
+ * unless the theme defines them explicitly.
+ *
+ * You can extend this in your own theme with a style.qss next to theme.json, or replace it completely
+ * by setting "replaceBaseQss": true. Use the theme editor to export a copy of this file.
+ */
+
+/* ---------- base ---------- */
+
+QMainWindow, QDialog, QWizard, QWizardPage {
+    background: @window;
+}
+
+QWidget {
+    color: @text;
+}
+
+QWidget:disabled {
+    color: @textDisabled;
+}
+
+QLabel {
+    background: transparent;
+}
+
+QLabel:disabled {
+    color: @textDisabled;
+}
+
+QToolTip {
+    background: @tooltip;
+    color: @tooltipText;
+    border: 1px solid @border;
+    border-radius: @radiusSmall;
+    padding: 6px 8px;
+}
+
+QSplitter::handle {
+    background: transparent;
+}
+
+QSplitter::handle:hover {
+    background: @accentSoft;
+}
+
+QScrollArea {
+    background: transparent;
+    border: none;
+}
+
+QScrollArea > QWidget#qt_scrollarea_viewport {
+    background: transparent;
+}
+
+QStackedWidget {
+    background: transparent;
+}
+
+/* ---------- buttons ---------- */
+
+QPushButton, QCommandLinkButton {
+    background: @surfaceAlt;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: @controlRadius;
+    padding: @padY @padX;
+    min-height: 16px;
+}
+
+QPushButton:hover, QCommandLinkButton:hover {
+    background: @hover;
+    border-color: @borderStrong;
+}
+
+QPushButton:pressed, QCommandLinkButton:pressed {
+    background: @pressed;
+}
+
+QPushButton:checked {
+    background: @accentSoft;
+    border-color: @accent;
+}
+
+QPushButton:focus, QCommandLinkButton:focus {
+    border-color: @accent;
+}
+
+QPushButton:default {
+    background: @accent;
+    color: @accentText;
+    border-color: @accent;
+    font-weight: 600;
+}
+
+QPushButton:default:hover {
+    background: @accentHover;
+    border-color: @accentHover;
+}
+
+QPushButton:default:pressed {
+    background: @accentPressed;
+}
+
+QPushButton:disabled, QCommandLinkButton:disabled {
+    background: @surface;
+    color: @textDisabled;
+    border-color: @border;
+}
+
+QPushButton[flat="true"] {
+    background: transparent;
+    border-color: transparent;
+}
+
+QPushButton[flat="true"]:hover {
+    background: @hover;
+}
+
+QPushButton::menu-indicator {
+    image: url(nova:chevron-down-textMuted.svg);
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 10px;
+    height: 10px;
+    right: 2px;
+}
+
+QPushButton[novaRole="chip"] {
+    background: transparent;
+    color: @textMuted;
+    border: 1px solid @border;
+    border-radius: 11px;
+    padding: 2px 10px;
+    min-height: 0px;
+    font-weight: 600;
+}
+
+QPushButton[novaRole="chip"]:hover {
+    color: @text;
+    border-color: @accent;
+}
+
+QCommandLinkButton {
+    color: @accent;
+    font-weight: 600;
+}
+
+QToolButton {
+    background: transparent;
+    color: @text;
+    border: 1px solid transparent;
+    border-radius: @controlRadius;
+    padding: 4px 6px;
+}
+
+QToolButton:hover {
+    background: @hover;
+}
+
+QToolButton:pressed {
+    background: @pressed;
+}
+
+QToolButton:checked {
+    background: @accentSoft;
+}
+
+QToolButton:disabled {
+    color: @textDisabled;
+}
+
+QToolButton[popupMode="1"] {
+    padding-right: 20px;
+}
+
+QToolButton::menu-button {
+    border: none;
+    width: 18px;
+}
+
+QToolButton::menu-arrow, QToolButton::menu-indicator {
+    image: url(nova:chevron-down-textMuted.svg);
+    width: 10px;
+    height: 10px;
+}
+
+QToolButton::menu-indicator {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    right: 2px;
+}
+
+QToolButton[popupMode="2"] {
+    padding-right: 18px;
+}
+
+/* ---------- toolbars and menus ---------- */
+
+QToolBar {
+    background: transparent;
+    border: none;
+    spacing: 2px;
+    padding: 4px;
+}
+
+QToolBar::separator {
+    background: @border;
+    width: 1px;
+    height: 1px;
+    margin: 4px 6px;
+}
+
+QToolBar::handle {
+    width: 0px;
+    height: 0px;
+}
+
+QMenuBar {
+    background: @window;
+    border-bottom: 1px solid @border;
+    padding: 2px 4px;
+}
+
+QMenuBar::item {
+    background: transparent;
+    padding: 4px 10px;
+    border-radius: @radiusSmall;
+}
+
+QMenuBar::item:selected, QMenuBar::item:pressed {
+    background: @hover;
+}
+
+QMenu {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+    padding: 6px;
+}
+
+QMenu::item {
+    background: transparent;
+    padding: 6px 28px 6px 10px;
+    border-radius: @radiusSmall;
+}
+
+QMenu::item:selected {
+    background: @accentSoft;
+    color: @text;
+}
+
+QMenu::item:disabled {
+    color: @textDisabled;
+    background: transparent;
+}
+
+QMenu::icon {
+    padding-left: 8px;
+}
+
+QMenu::separator {
+    height: 1px;
+    background: @border;
+    margin: 5px 6px;
+}
+
+QMenu::indicator {
+    width: 14px;
+    height: 14px;
+    padding-left: 6px;
+}
+
+QMenu::indicator:checked {
+    image: url(nova:check-accent.svg);
+}
+
+QMenu::right-arrow {
+    image: url(nova:chevron-right-textMuted.svg);
+    width: 12px;
+    height: 12px;
+    padding-right: 6px;
+}
+
+QStatusBar {
+    background: @window;
+    color: @textMuted;
+    border-top: 1px solid @border;
+}
+
+QStatusBar::item {
+    border: none;
+}
+
+QStatusBar QLabel {
+    color: @textMuted;
+    padding: 2px 8px;
+}
+
+/* ---------- inputs ---------- */
+
+QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox, QDateTimeEdit, QKeySequenceEdit {
+    background: @surfaceAlt;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: @controlRadius;
+    padding: 5px 8px;
+    selection-background-color: @accent;
+    selection-color: @accentText;
+}
+
+QTextEdit, QPlainTextEdit {
+    padding: 4px;
+}
+
+QLineEdit:hover, QTextEdit:hover, QPlainTextEdit:hover, QSpinBox:hover, QDoubleSpinBox:hover, QComboBox:hover {
+    border-color: @borderStrong;
+}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus, QComboBox:on {
+    border-color: @accent;
+}
+
+QLineEdit:disabled, QTextEdit:disabled, QPlainTextEdit:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled, QComboBox:disabled {
+    background: @surface;
+    color: @textDisabled;
+    border-color: @border;
+}
+
+QLineEdit[readOnly="true"] {
+    background: @surface;
+}
+
+QTextBrowser {
+    background: @surfaceAlt;
+}
+
+QComboBox {
+    padding-right: 28px;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 24px;
+    border: none;
+    background: transparent;
+}
+
+QComboBox::down-arrow {
+    image: url(nova:chevron-down-textMuted.svg);
+    width: 12px;
+    height: 12px;
+}
+
+QComboBox::down-arrow:disabled {
+    image: url(nova:chevron-down-textDisabled.svg);
+}
+
+QComboBox QAbstractItemView {
+    background: @surface;
+    color: @text;
+    border: 1px solid @border;
+    padding: 4px;
+    outline: 0;
+    selection-background-color: @accentSoft;
+    selection-color: @text;
+}
+
+QSpinBox, QDoubleSpinBox {
+    padding-right: 22px;
+}
+
+QSpinBox::up-button, QDoubleSpinBox::up-button, QSpinBox::down-button, QDoubleSpinBox::down-button {
+    subcontrol-origin: border;
+    width: 20px;
+    border: none;
+    background: transparent;
+}
+
+QSpinBox::up-button, QDoubleSpinBox::up-button {
+    subcontrol-position: top right;
+    margin-top: 2px;
+}
+
+QSpinBox::down-button, QDoubleSpinBox::down-button {
+    subcontrol-position: bottom right;
+    margin-bottom: 2px;
+}
+
+QSpinBox::up-button:hover, QDoubleSpinBox::up-button:hover, QSpinBox::down-button:hover, QDoubleSpinBox::down-button:hover {
+    background: @hover;
+    border-radius: @radiusSmall;
+}
+
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
+    image: url(nova:chevron-up-textMuted.svg);
+    width: 10px;
+    height: 10px;
+}
+
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
+    image: url(nova:chevron-down-textMuted.svg);
+    width: 10px;
+    height: 10px;
+}
+
+/* ---------- check boxes and radio buttons ---------- */
+
+QCheckBox, QRadioButton {
+    spacing: 8px;
+    background: transparent;
+}
+
+QCheckBox::indicator, QGroupBox::indicator, QAbstractItemView::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid @borderStrong;
+    border-radius: 5px;
+    background: @surfaceAlt;
+}
+
+QCheckBox::indicator:hover, QGroupBox::indicator:hover, QAbstractItemView::indicator:hover {
+    border-color: @accent;
+}
+
+QCheckBox::indicator:checked, QGroupBox::indicator:checked, QAbstractItemView::indicator:checked {
+    background: @accent;
+    border-color: @accent;
+    image: url(nova:check-accentText.svg);
+}
+
+QCheckBox::indicator:indeterminate, QAbstractItemView::indicator:indeterminate {
+    background: @accent;
+    border-color: @accent;
+    image: url(nova:partial-accentText.svg);
+}
+
+QCheckBox::indicator:disabled, QGroupBox::indicator:disabled, QAbstractItemView::indicator:disabled {
+    background: @surface;
+    border-color: @border;
+}
+
+QCheckBox::indicator:checked:disabled, QGroupBox::indicator:checked:disabled {
+    background: @textDisabled;
+    border-color: @textDisabled;
+}
+
+QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid @borderStrong;
+    border-radius: 9px;
+    background: @surfaceAlt;
+}
+
+QRadioButton::indicator:hover {
+    border-color: @accent;
+}
+
+QRadioButton::indicator:checked {
+    background: @accent;
+    border-color: @accent;
+    image: url(nova:radio-accentText.svg);
+}
+
+QRadioButton::indicator:disabled {
+    background: @surface;
+    border-color: @border;
+}
+
+/* ---------- sliders and progress ---------- */
+
+QSlider::groove:horizontal {
+    height: 4px;
+    background: @border;
+    border-radius: 2px;
+}
+
+QSlider::sub-page:horizontal {
+    background: @accent;
+    border-radius: 2px;
+}
+
+QSlider::groove:vertical {
+    width: 4px;
+    background: @border;
+    border-radius: 2px;
+}
+
+QSlider::add-page:vertical {
+    background: @accent;
+    border-radius: 2px;
+}
+
+QSlider::handle:horizontal, QSlider::handle:vertical {
+    background: @knob;
+    border: 3px solid @accent;
+    width: 10px;
+    height: 10px;
+    border-radius: 8px;
+}
+
+QSlider::handle:horizontal {
+    margin: -6px 0;
+}
+
+QSlider::handle:vertical {
+    margin: 0 -6px;
+}
+
+QSlider::handle:hover {
+    border-color: @accentHover;
+}
+
+QSlider::sub-page:horizontal:disabled, QSlider::add-page:vertical:disabled {
+    background: @textDisabled;
+}
+
+QSlider::handle:disabled {
+    border-color: @textDisabled;
+}
+
+QProgressBar {
+    background: @surfaceAlt;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: @radiusSmall;
+    text-align: center;
+    min-height: 14px;
+}
+
+QProgressBar::chunk {
+    background: @accent;
+    border-radius: @radiusSmall;
+}
+
+/* ---------- scroll bars ---------- */
+
+QScrollBar:vertical {
+    background: transparent;
+    width: 12px;
+    margin: 2px;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 12px;
+    margin: 2px;
+}
+
+QScrollBar::handle:vertical {
+    background: @scrollHandle;
+    border-radius: 4px;
+    min-height: 32px;
+    margin: 0 2px;
+}
+
+QScrollBar::handle:horizontal {
+    background: @scrollHandle;
+    border-radius: 4px;
+    min-width: 32px;
+    margin: 2px 0;
+}
+
+QScrollBar::handle:hover {
+    background: @scrollHandleHover;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    width: 0px;
+    height: 0px;
+    border: none;
+    background: none;
+}
+
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: none;
+}
+
+QAbstractScrollArea::corner {
+    background: transparent;
+}
+
+/* ---------- tabs ---------- */
+
+QTabWidget::pane {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+    top: -1px;
+}
+
+QTabWidget::tab-bar {
+    left: 10px;
+}
+
+QTabBar {
+    background: transparent;
+}
+
+QTabBar::tab {
+    background: transparent;
+    color: @textMuted;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 8px 12px;
+    margin-right: 2px;
+}
+
+QTabBar::tab:hover {
+    color: @text;
+    border-bottom-color: @borderStrong;
+}
+
+QTabBar::tab:selected {
+    color: @text;
+    border-bottom-color: @accent;
+}
+
+QTabBar::tab:disabled {
+    color: @textDisabled;
+}
+
+QTabBar::scroller {
+    width: 44px;
+}
+
+QTabBar QToolButton {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radiusSmall;
+    margin: 4px 1px;
+}
+
+QTabBar QToolButton::left-arrow {
+    image: url(nova:chevron-left-textMuted.svg);
+    width: 10px;
+    height: 10px;
+}
+
+QTabBar QToolButton::right-arrow {
+    image: url(nova:chevron-right-textMuted.svg);
+    width: 10px;
+    height: 10px;
+}
+
+/* ---------- group boxes and frames ---------- */
+
+QGroupBox {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+    margin-top: 26px;
+    padding: 12px 10px 10px 10px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 6px;
+    padding: 0 4px 6px 4px;
+    color: @text;
+    font-weight: 600;
+}
+
+QGroupBox[flat="true"] {
+    background: transparent;
+    border: none;
+    border-top: 1px solid @border;
+    border-radius: 0px;
+}
+
+QGroupBox QGroupBox {
+    background: @surfaceAlt;
+}
+
+/* ---------- item views ---------- */
+
+QAbstractItemView {
+    background: @surfaceAlt;
+    alternate-background-color: @surfaceAlt2;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: @radius;
+    selection-background-color: @accentSoft;
+    selection-color: @text;
+    outline: 0;
+}
+
+QAbstractItemView:disabled {
+    color: @textDisabled;
+}
+
+QListView::item {
+    border-radius: @radiusSmall;
+    padding: 2px;
+}
+
+QListView::item:hover, QTreeView::item:hover, QTableView::item:hover {
+    background: @hover;
+}
+
+QListView::item:selected, QTreeView::item:selected, QTableView::item:selected {
+    background: @accentSoft;
+    color: @text;
+}
+
+QTreeView::item {
+    padding: 3px 2px;
+}
+
+QTreeView::branch {
+    background: transparent;
+}
+
+QTreeView::branch:has-children:!has-siblings:closed, QTreeView::branch:closed:has-children:has-siblings {
+    image: url(nova:chevron-right-textMuted.svg);
+}
+
+QTreeView::branch:open:has-children:!has-siblings, QTreeView::branch:open:has-children:has-siblings {
+    image: url(nova:chevron-down-textMuted.svg);
+}
+
+QHeaderView {
+    background: transparent;
+    border: none;
+}
+
+QHeaderView::section {
+    background: @surface;
+    color: @textMuted;
+    border: none;
+    border-bottom: 1px solid @border;
+    border-right: 1px solid @border;
+    padding: 6px 8px;
+    font-weight: 600;
+}
+
+QHeaderView::section:last {
+    border-right: none;
+}
+
+QHeaderView::section:hover {
+    color: @text;
+}
+
+QHeaderView::up-arrow {
+    image: url(nova:chevron-up-textMuted.svg);
+    width: 10px;
+    height: 10px;
+}
+
+QHeaderView::down-arrow {
+    image: url(nova:chevron-down-textMuted.svg);
+    width: 10px;
+    height: 10px;
+}
+
+QTableCornerButton::section {
+    background: @surface;
+    border: none;
+}
+
+/* ---------- settings / instance windows ---------- */
+
+QListView#pageList {
+    background: transparent;
+    border: none;
+    border-right: 1px solid @border;
+    border-radius: 0px;
+    padding: 8px;
+}
+
+QListView#pageList::item {
+    padding: 6px 8px;
+    margin: 1px 0px;
+    border-radius: @controlRadius;
+    color: @textMuted;
+}
+
+QListView#pageList::item:hover {
+    background: @hover;
+    color: @text;
+}
+
+QListView#pageList::item:selected {
+    background: @accentSoft;
+    color: @text;
+}
+
+QLabel#pageHeader {
+    font-size: @titleSize;
+    font-weight: 700;
+    padding: 6px 0px 4px 0px;
+}
+
+QLabel#renderScalingStatus {
+    border-radius: @controlRadius;
+    padding: 8px 10px;
+}
+
+QLabel#renderScalingStatus[state="warning"] {
+    background: @warningSoft;
+    border: 1px solid @warning;
+}
+
+QLabel#renderScalingStatus[state="ok"] {
+    background: @successSoft;
+    border: 1px solid @success;
+}
+
+/* ---------- main window ---------- */
+
+QWidget#novaCentral {
+    background: @window;
+}
+
+QFrame#novaSidebar {
+    background: @sidebar;
+    border: none;
+    border-right: 1px solid @border;
+}
+
+QLabel#novaBrandName {
+    font-size: @fontSize;
+    font-weight: 700;
+}
+
+QLabel#novaBrandVersion {
+    font-size: @smallSize;
+}
+
+QLabel#instanceCountLabel {
+    background: @hover;
+    color: @textMuted;
+    border-radius: 9px;
+    padding: 1px 8px;
+    font-weight: 700;
+}
+
+QLabel#novaBrandVersion, QLabel[novaRole="muted"] {
+    color: @textMuted;
+}
+
+QLabel[novaRole="section"] {
+    color: @textMuted;
+    font-size: @smallSize;
+    font-weight: 700;
+    padding: 12px 10px 4px 10px;
+}
+
+QPushButton[novaRole="nav"] {
+    background: transparent;
+    color: @textMuted;
+    border: 1px solid transparent;
+    border-radius: @controlRadius;
+    text-align: left;
+    padding: 7px 10px;
+    font-weight: 600;
+}
+
+QPushButton[novaRole="nav"]:hover {
+    background: @hover;
+    color: @text;
+}
+
+QPushButton[novaRole="nav"]:checked {
+    background: @accentSoft;
+    color: @text;
+}
+
+QPushButton[novaRole="nav"]:disabled {
+    color: @textDisabled;
+}
+
+QPushButton[novaRole="nav"][compact="true"], QPushButton[novaRole="primary"][compact="true"] {
+    text-align: center;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+QPushButton[novaRole="primary"], QToolButton[novaRole="primary"] {
+    background: @accent;
+    color: @accentText;
+    border: 1px solid @accent;
+    border-radius: @controlRadius;
+    text-align: left;
+    padding: 9px 12px;
+    font-weight: 700;
+}
+
+QPushButton[novaRole="primary"]:hover, QToolButton[novaRole="primary"]:hover {
+    background: @accentHover;
+    border-color: @accentHover;
+}
+
+QPushButton[novaRole="primary"]:pressed, QToolButton[novaRole="primary"]:pressed {
+    background: @accentPressed;
+}
+
+QPushButton[novaRole="account"] {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+}
+
+QPushButton[novaRole="account"]:hover {
+    border-color: @borderStrong;
+    background: @hover;
+}
+
+QPushButton[novaRole="account"][compact="true"] {
+    text-align: center;
+    padding: 8px 0px;
+}
+
+QLabel#novaPageTitle {
+    font-size: @titleSize;
+    font-weight: 700;
+}
+
+QLineEdit#novaSearch {
+    background: @surface;
+    border-radius: @radius;
+    padding: 7px 10px;
+}
+
+QComboBox#novaSort {
+    background: @surface;
+    border-radius: @radius;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+QFrame#novaLibrary, QFrame#novaInspector, QFrame#novaNewsBar {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+}
+
+InstanceView {
+    background: transparent;
+    border: none;
+}
+
+QToolButton#novaInstanceIcon {
+    background: @surfaceAlt;
+    border: 1px solid @border;
+    border-radius: @radius;
+    padding: 8px;
+}
+
+QScrollArea#inspectorScroll, QWidget#inspectorScrollContents {
+    background: transparent;
+}
+
+QToolButton#novaInstanceIcon:hover {
+    border-color: @accent;
+}
+
+QToolButton#novaInstanceName {
+    font-size: @subtitleSize;
+    font-weight: 700;
+    padding: 2px 6px;
+}
+
+QLabel#novaStatusPill {
+    background: @surfaceAlt;
+    color: @textMuted;
+    border: 1px solid @border;
+    border-radius: 10px;
+    padding: 2px 10px;
+    font-weight: 600;
+}
+
+QLabel#novaStatusPill[state="running"] {
+    background: @successSoft;
+    color: @success;
+    border-color: @success;
+}
+
+QLabel#novaStatusPill[state="broken"] {
+    background: @dangerSoft;
+    color: @danger;
+    border-color: @danger;
+}
+
+QToolButton#novaPlayButton {
+    background: @accent;
+    color: @accentText;
+    border: none;
+    border-radius: @controlRadius;
+    padding: 10px 12px;
+    padding-right: 34px;
+    font-size: @subtitleSize;
+    font-weight: 700;
+}
+
+QToolButton#novaPlayButton:hover {
+    background: @accentHover;
+}
+
+QToolButton#novaPlayButton:pressed {
+    background: @accentPressed;
+}
+
+QToolButton#novaPlayButton:disabled {
+    background: @surfaceAlt;
+    color: @textDisabled;
+}
+
+QToolButton#novaPlayButton::menu-button {
+    border: none;
+    border-left: 1px solid @accentPressed;
+    width: 30px;
+}
+
+QToolButton#novaPlayButton::menu-arrow {
+    image: url(nova:chevron-down-accentText.svg);
+    width: 12px;
+    height: 12px;
+}
+
+QToolButton#novaKillButton {
+    background: @dangerSoft;
+    color: @danger;
+    border: 1px solid @danger;
+    border-radius: @controlRadius;
+    padding: 8px 12px;
+    font-weight: 700;
+}
+
+QToolButton#novaKillButton:hover {
+    background: @danger;
+    color: @accentText;
+}
+
+QPushButton[novaRole="action"] {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: @controlRadius;
+    padding: 5px 10px;
+    text-align: left;
+}
+
+QPushButton[novaRole="action"]:hover {
+    background: @hover;
+}
+
+QPushButton[novaRole="action"]:disabled {
+    background: transparent;
+}
+
+QPushButton[novaRole="danger"] {
+    background: transparent;
+    color: @danger;
+    border: 1px solid transparent;
+    border-radius: @controlRadius;
+    padding: 5px 10px;
+    text-align: left;
+}
+
+QPushButton[novaRole="danger"]:hover {
+    background: @dangerSoft;
+    border-color: @danger;
+}
+
+QPushButton[novaRole="danger"]:disabled {
+    color: @textDisabled;
+}
+
+QPushButton[novaRole="news"] {
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 4px 6px;
+    font-weight: 600;
+}
+
+QPushButton[novaRole="news"]:hover {
+    color: @accent;
+}
+
+/* ---------- theme editor ---------- */
+
+QToolButton#novaSwatch {
+    border: 1px solid @borderStrong;
+    border-radius: @radiusSmall;
+    padding: 0px;
+}
+
+QFrame#novaPreviewCard {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+}

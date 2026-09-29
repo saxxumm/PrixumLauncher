@@ -25,6 +25,9 @@ class ListViewDelegate : public QStyledItemDelegate {
     explicit ListViewDelegate(QObject* parent = 0);
     virtual ~ListViewDelegate() {}
 
+    /// tile width and icon size, usually taken from the active theme
+    void setMetrics(int itemWidth, int iconSize);
+
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
     QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
     void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
@@ -38,4 +41,11 @@ class ListViewDelegate : public QStyledItemDelegate {
 
    private slots:
     void editingDone();
+
+   private:
+    QRect iconRect(const QRect& card) const;
+    QRect textRect(const QRect& card) const;
+
+    int m_itemWidth = 100;
+    int m_iconSize = 48;
 };
