@@ -1,7 +1,7 @@
 {
     "format": "nova",
     "name": "Nova Sakura",
-    "author": "Prism Launcher",
+    "author": "Prixum Launcher",
     "base": "light",
     "colors": {
         "window": "#fbf6f8",

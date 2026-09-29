@@ -71,6 +71,7 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QPushButton>
+#include <QScreen>
 #include <QShortcut>
 #include <QSignalBlocker>
 #include <QStackedWidget>
@@ -397,6 +398,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         ui->novaSort->addItem(NovaIcons::icon("sort", NovaIcons::Tint::Muted), QString(), "Name");
         ui->novaSort->addItem(NovaIcons::icon("sort", NovaIcons::Tint::Muted), QString(), "LastLaunch");
         ui->novaSort->addItem(NovaIcons::icon("sort", NovaIcons::Tint::Muted), QString(), "Playtime");
+        // translated names are longer than the English ones
+        ui->novaSort->setSizeAdjustPolicy(QComboBox::AdjustToContents);
         ui->novaSort->setCurrentIndex(std::max(0, ui->novaSort->findData(APPLICATION->settings()->get("InstSortMode").toString())));
         connect(ui->novaSort, &QComboBox::currentIndexChanged, this, [this](int index) {
             APPLICATION->settings()->set("InstSortMode", ui->novaSort->itemData(index).toString());
@@ -456,6 +459,11 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // sizes of the sidebar, panels and instance tiles are part of the theme
     connect(APPLICATION, &Application::themeApplied, this, &MainWindow::applyThemeMetrics);
+
+    // roomy enough for the inspector without scrolling, restoreGeometry() replaces it once the window was resized
+    if (auto* screen = QGuiApplication::primaryScreen()) {
+        resize(QSize(1240, 800).boundedTo(screen->availableSize() * 0.92));
+    }
 
     m_statusLeft = new QLabel(tr("No instance selected"), this);
     m_statusCenter = new QLabel(tr("Total playtime: 0s"), this);
@@ -783,6 +791,9 @@ void MainWindow::retranslateUi()
     }
     updateInstanceCount();
     updateInspector();
+    // these labels are filled from code, so they are not covered by ui->retranslateUi()
+    updateStatusCenter();
+    updateNewsLabel();
 
     // replace the %1 with the launcher display name in some actions
     if (ui->actionHelpButton->toolTip().contains("%1"))

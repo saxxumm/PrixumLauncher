@@ -1,7 +1,7 @@
 {
     "format": "nova",
     "name": "Nova Light",
-    "author": "Prism Launcher",
+    "author": "Prixum Launcher",
     "base": "light",
     "colors": {
         "window": "#f3f4f7",

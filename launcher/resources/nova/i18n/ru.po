@@ -551,7 +551,7 @@ msgstr "Настройки"
 
 msgctxt "ThemeEditorDialog"
 msgid "Shape && Size"
-msgstr "Форма и размеры"
+msgstr "Размеры"
 
 msgctxt "ThemeEditorDialog"
 msgid "Shape and size"
@@ -563,7 +563,7 @@ msgstr "Снапшот"
 
 msgctxt "ThemeEditorDialog"
 msgid "Stylesheet"
-msgstr "Стили (QSS)"
+msgstr "QSS"
 
 msgctxt "ThemeEditorDialog"
 msgid "The theme was exported to %1.\nCopy this folder into the themes folder of any launcher to use it."
@@ -600,3 +600,19 @@ msgstr "автоматически"
 msgctxt "MainWindow"
 msgid "Unsupported Modrinth link.\n\n%1 currently only supports modpack links such as modrinth://modpack/fabulously-optimized."
 msgstr "Неподдерживаемая ссылка Modrinth.\n\n%1 пока поддерживает только ссылки на модпаки, например modrinth://modpack/fabulously-optimized."
+
+msgctxt "MainWindow"
+msgid "Loading news..."
+msgstr "Загрузка новостей..."
+
+msgctxt "MainWindow"
+msgid "No news available."
+msgstr "Новостей нет."
+
+msgctxt "MainWindow"
+msgid "Total playtime: %1"
+msgstr "Всего в игре: %1"
+
+msgctxt "MainWindow"
+msgid "Total playtime: 0s"
+msgstr "Всего в игре: 0с"

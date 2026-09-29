@@ -1,7 +1,7 @@
 {
     "format": "nova",
     "name": "Nova Grass Block",
-    "author": "Prism Launcher",
+    "author": "Prixum Launcher",
     "base": "dark",
     "colors": {
         "window": "#14120f",

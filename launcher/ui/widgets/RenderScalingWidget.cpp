@@ -447,7 +447,9 @@ void RenderScalingWidget::setWindowSize(const QSize& size, bool maximized)
 
 void RenderScalingWidget::updateState()
 {
-    m_options->setEnabled(m_enabled->isChecked());
+    // an unchecked override group disables its children, setEnabled(true) must not undo that
+    const bool groupActive = !m_group->isCheckable() || m_group->isChecked();
+    m_options->setEnabled(groupActive && m_enabled->isChecked());
 
     const auto filter = m_filter->currentData().toString();
     const bool sharpening = filter == "fsr" || filter == "nis";

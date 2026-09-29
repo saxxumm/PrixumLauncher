@@ -71,9 +71,9 @@ QString pt(double value)
 
 }  // namespace
 
-const QList<ColorToken>& colorTokens()
+QList<ColorToken> colorTokens()
 {
-    static const QList<ColorToken> tokens{
+    return {
         { "window", QObject::tr("Window background"), QObject::tr("Surfaces") },
         { "sidebar", QObject::tr("Sidebar"), QObject::tr("Surfaces") },
         { "surface", QObject::tr("Panels and cards"), QObject::tr("Surfaces") },
@@ -91,12 +91,11 @@ const QList<ColorToken>& colorTokens()
         { "tooltip", QObject::tr("Tooltip background"), QObject::tr("Status") },
         { "tooltipText", QObject::tr("Tooltip text"), QObject::tr("Status") },
     };
-    return tokens;
 }
 
-const QList<MetricToken>& metricTokens()
+QList<MetricToken> metricTokens()
 {
-    static const QList<MetricToken> tokens{
+    return {
         { "radius", QObject::tr("Corner radius"), 0, 24, "px" },
         { "controlRadius", QObject::tr("Button and input corner radius"), 0, 20, "px" },
         { "density", QObject::tr("Control padding"), 2, 14, "px" },
@@ -106,7 +105,6 @@ const QList<MetricToken>& metricTokens()
         { "cardWidth", QObject::tr("Instance tile width"), 72, 240, "px" },
         { "iconSize", QObject::tr("Instance icon size"), 24, 128, "px" },
     };
-    return tokens;
 }
 
 const QStringList& derivedColorKeys()

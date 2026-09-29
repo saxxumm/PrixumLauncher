@@ -112,8 +112,8 @@ ThemeEditorDialog::ThemeEditorDialog(QWidget* parent) : QDialog(parent)
         auto* body = new QHBoxLayout;
         body->setSpacing(14);
         auto* tabs = new QTabWidget(this);
-        tabs->setMinimumWidth(430);
-        tabs->setMaximumWidth(470);
+        tabs->setMinimumWidth(450);
+        tabs->setMaximumWidth(500);
         tabs->addTab(scrollable(createColorsPage(), tabs), NovaIcons::icon("palette"), tr("Colors"));
         tabs->addTab(scrollable(createShapePage(), tabs), NovaIcons::icon("grid-small"), tr("Shape && Size"));
         tabs->addTab(createStylesheetPage(), NovaIcons::icon("logs"), tr("Stylesheet"));

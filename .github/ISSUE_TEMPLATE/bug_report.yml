@@ -1,65 +1,48 @@
-name: Bug Report
-description: File a bug report
-labels: ["bug: unconfirmed", "status: needs triage"]
+name: Сообщить об ошибке
+description: Что-то работает не так, как должно
+labels: [bug]
 body:
-- type: markdown
-  attributes:
-    value: |
-      If you need help with running Minecraft, please visit us on [our Discord](https://prismlauncher.org/discord) before making a bug report.
-
-      Before submitting a bug report, please make sure you have read this *entire* form, and that:
-      * You have read the [Prism Launcher wiki](https://prismlauncher.org/wiki/) and it has not answered your question.
-      * Your bug is not caused by Minecraft or any mods you have installed.
-      * Your issue has not been reported before, [make sure to use the search function!](https://github.com/PrismLauncher/PrismLauncher/issues)
-
-      **Do not forget to give your issue a descriptive title.** "Bug in the instance screen" makes it hard to distinguish issues at a glance.
-- type: dropdown
-  attributes:
-    label: Operating System
-    description: If you know this bug occurs on multiple operating systems, select all you have tested.
-    multiple: true
-    options:
-    - Windows
-    - macOS
-    - Linux
-    - Other
-- type: input
-  attributes:
-    label: Version of Prism Launcher
-    description: The version of Prism Launcher used in the bug report.
-    placeholder: Prism Launcher 5.0
-  validations:
-    required: true
-- type: input
-  attributes:
-    label: Version of Qt
-    description: The version of Qt used in the bug report. You can find it in Help -> About Prism Launcher -> About Qt.
-    placeholder: Qt 6.3.0
-  validations:
-    required: true
-- type: textarea
-  attributes:
-    label: Description of bug
-    description: What did you expect to happen, what happened, and why is it incorrect?
-    placeholder: The cat button should show a cat, but it showed a dog instead!
-  validations:
-    required: true
-- type: textarea
-  attributes:
-    label: Steps to reproduce
-    description: A bulleted list, or an exported instance if relevant.
-    placeholder: "* Press the cat button"
-  validations:
-    required: true
-- type: textarea
-  attributes:
-    label: Other information
-    description: If you have an idea where the problem might lie, let us know that here. Please include any pointers to code, relevant changes, or related issues you know of.
-  validations:
-    required: false
-- type: checkboxes
-  attributes:
-    label: This issue is unique
-    options:
-    - label: I have searched the issue tracker and did not find an issue describing my bug.
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо, что сообщаешь об ошибке! Перед отправкой загляни в [список issues](https://github.com/saxxumm/PrixumLauncher/issues?q=is%3Aissue) — возможно, о ней уже написали.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Система
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Другая
+    validations:
       required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия Prixum Launcher
+      description: Видна под названием лаунчера в левом верхнем углу.
+      placeholder: "12.0.0"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Что случилось
+      description: Опиши проблему и что должно было произойти.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Как повторить
+      placeholder: |
+        1. Открыть …
+        2. Нажать …
+        3. Появляется …
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи
+      description: Журнал экземпляра (кнопка «Поделиться» даёт ссылку) или лог лаунчера. Проверь, что в нём нет токенов и паролей.
+      render: text

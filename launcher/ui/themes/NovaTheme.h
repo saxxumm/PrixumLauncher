@@ -51,8 +51,9 @@ struct MetricToken {
 };
 
 /// the editable base colors, derived colors (accentHover, accentSoft, ...) can be overridden in theme.json too
-const QList<ColorToken>& colorTokens();
-const QList<MetricToken>& metricTokens();
+// built on every call, so the labels follow the current language
+QList<ColorToken> colorTokens();
+QList<MetricToken> metricTokens();
 /// colors which are computed from the base colors when a theme doesn't set them
 const QStringList& derivedColorKeys();
 

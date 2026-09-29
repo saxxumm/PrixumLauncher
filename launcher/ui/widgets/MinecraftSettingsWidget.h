@@ -46,6 +46,8 @@ class MinecraftSettingsWidget;
 }
 
 class MinecraftSettingsWidget : public QWidget {
+    // without it tr() would use the QWidget context and miss the translations
+    Q_OBJECT
    public:
     explicit MinecraftSettingsWidget(MinecraftInstance* instance, QWidget* parent = nullptr);
     ~MinecraftSettingsWidget() override;
