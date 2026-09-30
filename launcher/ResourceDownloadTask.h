@@ -42,11 +42,16 @@ class ResourceDownloadTask : public SequentialTask {
     const ModPlatform::ResourceProvider& getProvider() const { return m_pack->provider; }
     const QString& getName() const { return m_pack->name; }
     ModPlatform::IndexedPack::Ptr getPack() { return m_pack; }
+    const QString& getDownloadReason() const { return m_downloadReason; }
+    const QString& getDependentOn() const { return m_dependentOn; }
+    bool isIndexed() const { return m_update_task != nullptr; }
 
    private:
     ModPlatform::IndexedPack::Ptr m_pack;
     ModPlatform::IndexedVersion m_pack_version;
     ResourceFolderModel* m_pack_model;
+    QString m_downloadReason;
+    QString m_dependentOn;
 
     NetJob::Ptr m_filesNetJob;
     LocalResourceUpdateTask::Ptr m_update_task;

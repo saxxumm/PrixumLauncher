@@ -38,6 +38,7 @@
 #include <QDialog>
 
 #include "InstanceTask.h"
+#include "ui/dialogs/NewInstanceResources.h"
 #include "ui/pages/BasePageProvider.h"
 
 namespace Ui {
@@ -46,6 +47,7 @@ class NewInstanceDialog;
 
 class PageContainer;
 class QDialogButtonBox;
+class QLabel;
 class ImportPage;
 class FlamePage;
 
@@ -67,6 +69,10 @@ class NewInstanceDialog : public QDialog, public BasePageProvider {
     void setSuggestedIcon(const QString& key);
 
     InstanceTask* extractTask();
+    //! mods and extras picked on the custom page, to download once the instance exists
+    QList<NewInstanceResources::Entry> extractResources() const;
+    //! one line next to the buttons that tells what is going to be created
+    void setSummary(const QString& summary);
 
     QString dialogTitle() override;
     QList<BasePage*> getPages() override;
@@ -94,6 +100,7 @@ class NewInstanceDialog : public QDialog, public BasePageProvider {
     Ui::NewInstanceDialog* ui = nullptr;
     PageContainer* m_container = nullptr;
     QDialogButtonBox* m_buttons = nullptr;
+    QLabel* m_summary = nullptr;
 
     QString m_instIconKey;
     ImportPage* m_importPage = nullptr;

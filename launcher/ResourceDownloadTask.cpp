@@ -57,7 +57,11 @@ ResourceDownloadTask::ResourceDownloadTask(ModPlatform::IndexedPack::Ptr pack,
                                            bool isIndexed,
                                            QString downloadReason,
                                            QString dependentOn)
-    : m_pack(std::move(pack)), m_pack_version(std::move(version)), m_pack_model(packs)
+    : m_pack(std::move(pack))
+    , m_pack_version(std::move(version))
+    , m_pack_model(packs)
+    , m_downloadReason(downloadReason)
+    , m_dependentOn(dependentOn)
 {
     if (isIndexed) {
         m_update_task.reset(new LocalResourceUpdateTask(m_pack_model->indexDir(), *m_pack, m_pack_version));

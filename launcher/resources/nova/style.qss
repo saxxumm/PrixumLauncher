@@ -1102,3 +1102,51 @@ QFrame#novaPreviewCard {
     border: 1px solid @border;
     border-radius: @radius;
 }
+
+/* cards used by the new instance dialog */
+QFrame[novaRole="card"] {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+}
+
+QLabel[novaRole="cardTitle"] {
+    font-size: @subtitleSize;
+    font-weight: 700;
+}
+
+QLineEdit[novaRole="title"] {
+    font-size: @subtitleSize;
+    font-weight: 600;
+    padding: 7px 10px;
+}
+
+QPushButton[novaRole="chip"]:checked {
+    background: @accentSoft;
+    color: @accent;
+    border-color: @accent;
+}
+
+/* one of several exclusive options, like the mod loader of a new instance */
+QPushButton[novaRole="choice"] {
+    background: @surfaceAlt;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: @controlRadius;
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+}
+
+QPushButton[novaRole="choice"]:hover {
+    border-color: @borderStrong;
+}
+
+QPushButton[novaRole="choice"]:checked {
+    background: @accentSoft;
+    border-color: @accent;
+}
+
+QPushButton[novaRole="choice"]:disabled {
+    color: @textDisabled;
+}

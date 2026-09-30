@@ -51,6 +51,8 @@
 
 #include <QDialogButtonBox>
 #include <QFileDialog>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QLayout>
 #include <QPushButton>
 #include <QScreen>
@@ -102,14 +104,22 @@ NewInstanceDialog::NewInstanceDialog(const QString& initialGroup,
     // NOTE: m_buttons must be initialized before PageContainer, because it indirectly accesses m_buttons through setSuggestedPack! Do not
     // move this below.
     m_buttons = new QDialogButtonBox(QDialogButtonBox::Help | QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    // what is going to be created, next to the buttons; pages may already suggest something while they are built
+    m_summary = new QLabel(this);
+    m_summary->setProperty("novaRole", "muted");
+    m_summary->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     m_container = new PageContainer(this, {}, this);
     m_container->useSidebarStyle(false);
     m_container->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Expanding);
     m_container->layout()->setContentsMargins(0, 0, 0, 0);
-    ui->verticalLayout->insertWidget(2, m_container);
+    ui->verticalLayout->insertWidget(1, m_container, 1);
 
-    m_container->addButtons(m_buttons);
+    auto* footer = new QHBoxLayout;
+    footer->setSpacing(12);
+    footer->addWidget(m_summary, 1);
+    footer->addWidget(m_buttons);
+    m_container->addButtons(footer);
     connect(m_container, &PageContainer::selectedPageChanged, this, [this](BasePage* /*previous*/, BasePage* /*selected*/) {
         m_buttons->button(QDialogButtonBox::Ok)->setEnabled(m_creationTask && !instName().isEmpty());
     });
@@ -119,7 +129,7 @@ NewInstanceDialog::NewInstanceDialog(const QString& initialGroup,
     auto* okButton = m_buttons->button(QDialogButtonBox::Ok);
     okButton->setDefault(true);
     okButton->setAutoDefault(true);
-    okButton->setText(tr("OK"));
+    okButton->setText(tr("Create"));
     connect(okButton, &QPushButton::clicked, this, &NewInstanceDialog::accept);
 
     auto* cancelButton = m_buttons->button(QDialogButtonBox::Cancel);
@@ -153,12 +163,13 @@ NewInstanceDialog::NewInstanceDialog(const QString& initialGroup,
 
     updateDialogState();
 
-    if (APPLICATION->settings()->get("NewInstanceGeometry").isValid()) {
-        restoreGeometry(QByteArray::fromBase64(APPLICATION->settings()->get("NewInstanceGeometry").toString().toUtf8()));
-    } else {
-        auto* screen = parent->screen();
-        auto geometry = screen->availableSize();
-        resize(width(), qMin(geometry.height() - 50, 710));
+    // room for the two column version page, also when an older, smaller geometry is restored
+    const auto available = (parent ? parent->screen() : screen())->availableSize();
+    setMinimumSize(QSize(1020, 640).boundedTo(available * 0.95));
+    // the setting defaults to an empty string, which is a valid QVariant but no geometry
+    const auto savedGeometry = APPLICATION->settings()->get("NewInstanceGeometry").toString();
+    if (savedGeometry.isEmpty() || !restoreGeometry(QByteArray::fromBase64(savedGeometry.toUtf8()))) {
+        resize(QSize(1200, 840).boundedTo(available * 0.92));
     }
 
     connect(m_container, &PageContainer::selectedPageChanged, this, &NewInstanceDialog::selectedPageChanged);
@@ -254,6 +265,7 @@ void NewInstanceDialog::refreshInstDirBox()
 void NewInstanceDialog::setSuggestedPack(const QString& name, InstanceTask* task)
 {
     m_creationTask.reset(task);
+    setSummary(task ? name : QString());
 
     m_suggestedName = name;
 
@@ -278,6 +290,7 @@ void NewInstanceDialog::setSuggestedPack(const QString& name, InstanceTask* task
 void NewInstanceDialog::setSuggestedPack(const QString& name, QString version, InstanceTask* task)
 {
     m_creationTask.reset(task);
+    setSummary(task ? (version.isEmpty() ? name : QString("%1  ·  %2").arg(name, version)) : QString());
 
     m_suggestedName = name;
 
@@ -420,5 +433,21 @@ void NewInstanceDialog::selectedPageChanged(BasePage* previous, BasePage* select
     auto* nextPage = dynamic_cast<ModpackProviderBasePage*>(selected);
     if (nextPage) {
         nextPage->setSearchTerm(m_searchTerm);
+    }
+}
+
+QList<NewInstanceResources::Entry> NewInstanceDialog::extractResources() const
+{
+    // only instances made from a version can take extras, modpacks bring their own
+    if (auto* page = dynamic_cast<CustomPage*>(m_container->selectedPage())) {
+        return page->resources();
+    }
+    return {};
+}
+
+void NewInstanceDialog::setSummary(const QString& summary)
+{
+    if (m_summary) {
+        m_summary->setText(summary);
     }
 }

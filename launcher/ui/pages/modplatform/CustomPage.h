@@ -38,6 +38,7 @@
 #include <QWidget>
 
 #include "BaseVersion.h"
+#include "ui/dialogs/NewInstanceResources.h"
 #include "ui/pages/BasePage.h"
 
 namespace Ui {
@@ -66,6 +67,9 @@ class CustomPage : public QWidget, public BasePage {
     QString selectedLoader() const;
     QString selectedLoaderName() const;
 
+    //! mods, resource packs and shaders to download once the instance exists
+    QList<NewInstanceResources::Entry> resources() const { return m_resources; }
+
    public slots:
     void setSelectedVersion(BaseVersion::Ptr version);
     void setSelectedLoaderVersion(BaseVersion::Ptr version);
@@ -78,6 +82,14 @@ class CustomPage : public QWidget, public BasePage {
     void refresh();
     void loaderRefresh();
     void suggestCurrent();
+    void setupIcons();
+    void chooseResources(NewInstanceResources::Kind kind);
+    void removeSelectedResources();
+    //! forgets choices made for another Minecraft version or mod loader
+    void dropOutdatedResources();
+    void updateResources();
+    void updateSummary();
+    QString loaderUid() const;
 
    private:
     bool m_initialized = false;
@@ -87,4 +99,9 @@ class CustomPage : public QWidget, public BasePage {
     BaseVersion::Ptr m_selectedVersion;
     BaseVersion::Ptr m_selectedLoaderVersion;
     QString m_selectedLoader;
+
+    QList<NewInstanceResources::Entry> m_resources;
+    QString m_resourcesVersion;
+    QString m_resourcesLoader;
+    QString m_resourcesNote;
 };

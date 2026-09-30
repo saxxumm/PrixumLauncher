@@ -111,6 +111,7 @@
 #include "ui/dialogs/IconPickerDialog.h"
 #include "ui/dialogs/ImportResourceDialog.h"
 #include "ui/dialogs/NewInstanceDialog.h"
+#include "ui/dialogs/NewInstanceResources.h"
 #include "ui/dialogs/NewsDialog.h"
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui/dialogs/ThemeEditorDialog.h"
@@ -1270,8 +1271,18 @@ void MainWindow::addInstance(const QString& url, const QMap<QString, QString>& e
     APPLICATION->settings()->set("LastUsedInstDirForNewInstance", newInstDlg.instDir());
 
     InstanceTask* creationTask = newInstDlg.extractTask();
+    const auto resources = newInstDlg.extractResources();
     if (creationTask) {
+        // the new instance is only known once it is committed, the list asks to select it right then
+        QString createdId;
+        auto connection = connect(APPLICATION->instances(), &InstanceList::instanceSelectRequest, this,
+                                  [&createdId](const QString& id) { createdId = id; });
         instanceFromInstanceTask(creationTask);
+        disconnect(connection);
+
+        if (auto* instance = createdId.isEmpty() ? nullptr : APPLICATION->instances()->getInstanceById(createdId); instance) {
+            NewInstanceResources::install(this, instance, resources);
+        }
     }
 }
 

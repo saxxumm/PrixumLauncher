@@ -36,36 +36,83 @@
 #include "CustomPage.h"
 #include "ui_CustomPage.h"
 
+#include <QListWidget>
+#include <QPushButton>
 #include <QTabBar>
 #include <utility>
 
 #include "Application.h"
 #include "Filter.h"
 #include "Version.h"
+#include "icons/IconList.h"
 #include "meta/Index.h"
 #include "meta/VersionList.h"
 #include "minecraft/VanillaInstanceCreationTask.h"
 #include "ui/dialogs/NewInstanceDialog.h"
+#include "ui/themes/NovaIcons.h"
 
 CustomPage::CustomPage(NewInstanceDialog* dialog, QWidget* parent) : QWidget(parent), m_dialog(dialog), m_ui(new Ui::CustomPage)
 {
     m_ui->setupUi(this);
+    setupIcons();
     connect(m_ui->versionList, &VersionSelectWidget::selectedVersionChanged, this, &CustomPage::setSelectedVersion);
     filterChanged();
-    connect(m_ui->alphaFilter, &QCheckBox::checkStateChanged, this, &CustomPage::filterChanged);
-    connect(m_ui->betaFilter, &QCheckBox::checkStateChanged, this, &CustomPage::filterChanged);
-    connect(m_ui->snapshotFilter, &QCheckBox::checkStateChanged, this, &CustomPage::filterChanged);
-    connect(m_ui->releaseFilter, &QCheckBox::checkStateChanged, this, &CustomPage::filterChanged);
-    connect(m_ui->experimentsFilter, &QCheckBox::checkStateChanged, this, &CustomPage::filterChanged);
-    connect(m_ui->refreshBtn, &QPushButton::clicked, this, &CustomPage::refresh);
+    for (auto* filter : { m_ui->alphaFilter, m_ui->betaFilter, m_ui->snapshotFilter, m_ui->releaseFilter, m_ui->experimentsFilter }) {
+        connect(filter, &QAbstractButton::toggled, this, &CustomPage::filterChanged);
+        // chips keep their full text instead of shrinking
+        filter->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    }
+    connect(m_ui->refreshBtn, &QAbstractButton::clicked, this, &CustomPage::refresh);
 
     connect(m_ui->loaderVersionList, &VersionSelectWidget::selectedVersionChanged, this, &CustomPage::setSelectedLoaderVersion);
-    connect(m_ui->noneFilter, &QRadioButton::toggled, this, &CustomPage::loaderFilterChanged);
-    connect(m_ui->forgeFilter, &QRadioButton::toggled, this, &CustomPage::loaderFilterChanged);
-    connect(m_ui->fabricFilter, &QRadioButton::toggled, this, &CustomPage::loaderFilterChanged);
-    connect(m_ui->quiltFilter, &QRadioButton::toggled, this, &CustomPage::loaderFilterChanged);
-    connect(m_ui->liteLoaderFilter, &QRadioButton::toggled, this, &CustomPage::loaderFilterChanged);
-    connect(m_ui->loaderRefreshBtn, &QPushButton::clicked, this, &CustomPage::loaderRefresh);
+    for (auto* loader :
+         { m_ui->noneFilter, m_ui->neoForgeFilter, m_ui->forgeFilter, m_ui->fabricFilter, m_ui->quiltFilter, m_ui->liteLoaderFilter }) {
+        // the buttons are auto-exclusive, only react to the one that got checked
+        connect(loader, &QAbstractButton::toggled, this, [this](bool checked) {
+            if (checked) {
+                loaderFilterChanged();
+            }
+        });
+    }
+    connect(m_ui->loaderRefreshBtn, &QAbstractButton::clicked, this, &CustomPage::loaderRefresh);
+
+    connect(m_ui->modsButton, &QAbstractButton::clicked, this, [this] { chooseResources(NewInstanceResources::Kind::Mod); });
+    connect(m_ui->resourcePacksButton, &QAbstractButton::clicked, this,
+            [this] { chooseResources(NewInstanceResources::Kind::ResourcePack); });
+    connect(m_ui->shaderPacksButton, &QAbstractButton::clicked, this, [this] { chooseResources(NewInstanceResources::Kind::ShaderPack); });
+    connect(m_ui->removeResourcesButton, &QAbstractButton::clicked, this, &CustomPage::removeSelectedResources);
+    // clicking these must not take the default button role away from "Create"
+    for (auto* button : findChildren<QPushButton*>()) {
+        button->setAutoDefault(false);
+    }
+    m_ui->resourcesList->setMaximumHeight(120);
+    connect(m_ui->resourcesList, &QListWidget::itemSelectionChanged, this,
+            [this] { m_ui->removeResourcesButton->setEnabled(!m_ui->resourcesList->selectedItems().isEmpty()); });
+    updateResources();
+}
+
+void CustomPage::setupIcons()
+{
+    using NovaIcons::Tint;
+    m_ui->refreshBtn->setIcon(NovaIcons::icon("refresh", Tint::Muted));
+    m_ui->loaderRefreshBtn->setIcon(NovaIcons::icon("refresh", Tint::Muted));
+
+    // brand icons where the launcher has them
+    m_ui->noneFilter->setIcon(NovaIcons::icon("cube"));
+    m_ui->neoForgeFilter->setIcon(APPLICATION->icons()->getIcon("neoforged"));
+    m_ui->forgeFilter->setIcon(NovaIcons::icon("wrench"));
+    m_ui->fabricFilter->setIcon(APPLICATION->icons()->getIcon("fabricmc"));
+    m_ui->quiltFilter->setIcon(APPLICATION->icons()->getIcon("quiltmc"));
+    m_ui->liteLoaderFilter->setIcon(NovaIcons::icon("sparkles"));
+    for (auto* loader :
+         { m_ui->noneFilter, m_ui->neoForgeFilter, m_ui->forgeFilter, m_ui->fabricFilter, m_ui->quiltFilter, m_ui->liteLoaderFilter }) {
+        loader->setIconSize(QSize(20, 20));
+    }
+
+    m_ui->modsButton->setIcon(NovaIcons::icon("puzzle"));
+    m_ui->resourcePacksButton->setIcon(NovaIcons::icon("layers"));
+    m_ui->shaderPacksButton->setIcon(NovaIcons::icon("sun"));
+    m_ui->removeResourcesButton->setIcon(NovaIcons::icon("trash", Tint::Danger));
 }
 
 void CustomPage::openedImpl()
@@ -116,6 +163,9 @@ void CustomPage::filterChanged()
 
 void CustomPage::loaderFilterChanged()
 {
+    dropOutdatedResources();
+    updateResources();
+
     QString minecraftVersion;
     if (m_selectedVersion) {
         minecraftVersion = m_selectedVersion->descriptor();
@@ -177,6 +227,7 @@ bool CustomPage::shouldDisplay() const
 void CustomPage::retranslate()
 {
     m_ui->retranslateUi(this);
+    updateResources();
 }
 
 BaseVersion::Ptr CustomPage::selectedVersion() const
@@ -233,6 +284,7 @@ void CustomPage::suggestCurrent()
         m_dialog->setSuggestedPack(suggestedName, new VanillaCreationTask(m_selectedVersion, m_selectedLoader, m_selectedLoaderVersion));
     }
     m_dialog->setSuggestedIcon("default");
+    updateSummary();
 }
 
 void CustomPage::setSelectedVersion(BaseVersion::Ptr version)
@@ -246,4 +298,147 @@ void CustomPage::setSelectedLoaderVersion(BaseVersion::Ptr version)
 {
     m_selectedLoaderVersion = std::move(version);
     suggestCurrent();
+    updateResources();
+}
+
+QString CustomPage::loaderUid() const
+{
+    return m_ui->noneFilter->isChecked() ? QString() : m_selectedLoader;
+}
+
+void CustomPage::chooseResources(NewInstanceResources::Kind kind)
+{
+    if (!m_selectedVersion) {
+        return;
+    }
+    NewInstanceResources::Components components{ m_selectedVersion->descriptor(), {}, {} };
+    if (!loaderUid().isEmpty() && m_selectedLoaderVersion) {
+        components.loaderUid = loaderUid();
+        components.loaderVersion = m_selectedLoaderVersion->descriptor();
+    }
+    auto chosen = NewInstanceResources::choose(this, kind, components, m_resources);
+    if (!chosen) {
+        return;
+    }
+
+    QList<NewInstanceResources::Entry> result;
+    for (const auto& entry : m_resources) {
+        if (entry.kind != kind) {
+            result.append(entry);
+        }
+    }
+    result.append(*chosen);
+    m_resources = result;
+    m_resourcesVersion = components.minecraftVersion;
+    m_resourcesLoader = components.loaderUid;
+    m_resourcesNote.clear();
+    updateResources();
+}
+
+void CustomPage::removeSelectedResources()
+{
+    QList<int> rows;
+    for (auto* item : m_ui->resourcesList->selectedItems()) {
+        rows.append(item->data(Qt::UserRole).toInt());
+    }
+    std::sort(rows.begin(), rows.end(), std::greater<>());
+    for (auto row : rows) {
+        if (row >= 0 && row < m_resources.size()) {
+            m_resources.removeAt(row);
+        }
+    }
+    updateResources();
+}
+
+void CustomPage::dropOutdatedResources()
+{
+    const auto version = m_selectedVersion ? m_selectedVersion->descriptor() : QString();
+    const auto loader = loaderUid();
+    if (!m_resources.isEmpty()) {
+        QList<NewInstanceResources::Entry> kept;
+        for (const auto& entry : m_resources) {
+            // mods follow the loader, everything follows the Minecraft version
+            const bool outdated =
+                version != m_resourcesVersion || (entry.kind == NewInstanceResources::Kind::Mod && loader != m_resourcesLoader);
+            if (!outdated) {
+                kept.append(entry);
+            }
+        }
+        if (kept.size() != m_resources.size()) {
+            m_resourcesNote = tr("The choice was reset because the version or the mod loader changed.");
+        }
+        m_resources = kept;
+    }
+    m_resourcesVersion = version;
+    m_resourcesLoader = loader;
+}
+
+void CustomPage::updateResources()
+{
+    using NewInstanceResources::Kind;
+    auto iconFor = [](Kind kind) {
+        switch (kind) {
+            case Kind::Mod:
+                return NovaIcons::icon("puzzle", NovaIcons::Tint::Muted);
+            case Kind::ResourcePack:
+                return NovaIcons::icon("layers", NovaIcons::Tint::Muted);
+            case Kind::ShaderPack:
+                return NovaIcons::icon("sun", NovaIcons::Tint::Muted);
+        }
+        return QIcon();
+    };
+
+    m_ui->resourcesList->clear();
+    int mods = 0;
+    int resourcePacks = 0;
+    int shaders = 0;
+    for (int i = 0; i < m_resources.size(); i++) {
+        const auto& entry = m_resources[i];
+        const auto& version = entry.version.versionNumber.isEmpty() ? entry.version.version : entry.version.versionNumber;
+        auto text = QString("%1  ·  %2").arg(entry.pack->name, version);
+        if (entry.downloadReason == "dependency") {
+            text += "  ·  " + tr("dependency");
+        }
+        auto* item = new QListWidgetItem(iconFor(entry.kind), text, m_ui->resourcesList);
+        item->setData(Qt::UserRole, i);
+        mods += entry.kind == Kind::Mod;
+        resourcePacks += entry.kind == Kind::ResourcePack;
+        shaders += entry.kind == Kind::ShaderPack;
+    }
+    if (m_resources.isEmpty()) {
+        auto* placeholder = new QListWidgetItem(tr("Nothing chosen yet"), m_ui->resourcesList);
+        placeholder->setFlags(Qt::NoItemFlags);
+        placeholder->setData(Qt::UserRole, -1);
+    }
+
+    auto label = [](const QString& text, int count) { return count ? QString("%1 (%2)").arg(text).arg(count) : text; };
+    m_ui->modsButton->setText(label(tr("&Mods"), mods));
+    m_ui->resourcePacksButton->setText(label(tr("&Resource packs"), resourcePacks));
+    m_ui->shaderPacksButton->setText(label(tr("S&haders"), shaders));
+
+    const bool hasVersion = m_selectedVersion != nullptr;
+    const bool hasLoader = !loaderUid().isEmpty() && m_selectedLoaderVersion != nullptr;
+    m_ui->modsButton->setEnabled(hasVersion && hasLoader);
+    m_ui->modsButton->setToolTip(hasLoader ? QString() : tr("Choose a mod loader to add mods."));
+    m_ui->resourcePacksButton->setEnabled(hasVersion);
+    m_ui->shaderPacksButton->setEnabled(hasVersion);
+    m_ui->removeResourcesButton->setEnabled(!m_ui->resourcesList->selectedItems().isEmpty());
+
+    m_ui->resourcesSummary->setText(m_resources.isEmpty() ? m_resourcesNote : tr("Downloaded after the instance is created"));
+    updateSummary();
+}
+
+void CustomPage::updateSummary()
+{
+    if (!isOpened || !m_selectedVersion) {
+        return;
+    }
+    QStringList parts{ QString("Minecraft %1").arg(m_selectedVersion->descriptor()) };
+    if (!loaderUid().isEmpty() && m_selectedLoaderVersion) {
+        parts << QString("%1 %2").arg(selectedLoaderName(), m_selectedLoaderVersion->descriptor());
+    }
+    if (!m_resources.isEmpty()) {
+        parts << tr("%1 to download").arg(m_resources.size());
+    }
+    m_dialog->setSummary(parts.join("  ·  "));
 }

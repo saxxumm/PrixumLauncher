@@ -708,3 +708,112 @@ msgstr "authlib-injector %1 отсутствует или повреждён, о
 msgctxt "QObject"
 msgid "Download authlib-injector"
 msgstr "Загрузка authlib-injector"
+
+msgctxt "CustomPage"
+msgid "Minecraft version"
+msgstr "Версия Minecraft"
+
+msgctxt "CustomPage"
+msgid "Reload the version list"
+msgstr "Обновить список версий"
+
+msgctxt "CustomPage"
+msgid "Mod loader"
+msgstr "Загрузчик модов"
+
+msgctxt "CustomPage"
+msgid "Reload the loader versions"
+msgstr "Обновить версии загрузчика"
+
+msgctxt "CustomPage"
+msgid "Mods and extras"
+msgstr "Моды и дополнения"
+
+
+msgctxt "CustomPage"
+msgid "&Mods"
+msgstr "&Моды"
+
+msgctxt "CustomPage"
+msgid "&Resource packs"
+msgstr "&Ресурспаки"
+
+msgctxt "CustomPage"
+msgid "S&haders"
+msgstr "&Шейдеры"
+
+msgctxt "CustomPage"
+msgid "Re&move"
+msgstr "&Убрать"
+
+msgctxt "CustomPage"
+msgid "Nothing chosen yet"
+msgstr "Пока ничего не выбрано"
+
+msgctxt "CustomPage"
+msgid "dependency"
+msgstr "зависимость"
+
+msgctxt "CustomPage"
+msgid "Choose a mod loader to add mods."
+msgstr "Чтобы добавить моды, выберите загрузчик."
+
+msgctxt "CustomPage"
+msgid "Downloaded after the instance is created"
+msgstr "Скачается после создания экземпляра"
+
+msgctxt "CustomPage"
+msgid "The choice was reset because the version or the mod loader changed."
+msgstr "Выбор сброшен: сменилась версия или загрузчик."
+
+msgctxt "CustomPage"
+msgid "%1 to download"
+msgstr "к скачиванию: %1"
+
+msgctxt "NewInstanceDialog"
+msgid "Create"
+msgstr "Создать"
+
+msgctxt "NewInstanceDialog"
+msgid "Change the icon"
+msgstr "Сменить иконку"
+
+msgctxt "NewInstanceDialog"
+msgid "Pick a version or a modpack below"
+msgstr "Выберите версию или модпак ниже"
+
+msgctxt "QObject"
+msgid "Couldn't create a temporary folder: %1"
+msgstr "Не удалось создать временную папку: %1"
+
+msgctxt "QObject"
+msgid "New instance"
+msgstr "Новый экземпляр"
+
+msgctxt "QObject"
+msgid "Download mods and extras"
+msgstr "Загрузка модов и дополнений"
+
+msgctxt "QObject"
+msgid "The instance was created, but some downloads failed:\n%1"
+msgstr "Экземпляр создан, но часть файлов не скачалась:\n%1"
+
+msgctxt "QObject"
+msgid "Error"
+msgstr "Ошибка"
+
+msgctxt "QObject"
+msgid "Warnings"
+msgstr "Предупреждения"
+
+msgctxt "QObject"
+msgid "Abort"
+msgstr "Прервать"
+
+msgctxt "CustomPage"
+msgid "Experiments"
+msgstr "Эксперименты"
+
+msgctxt "CustomPage"
+msgid "Mods, resource packs and shaders for the chosen version."
+msgstr "Моды, ресурспаки и шейдеры для выбранной версии."

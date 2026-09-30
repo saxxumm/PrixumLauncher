@@ -1067,6 +1067,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/NewComponentDialog.cpp
     ui/dialogs/NewComponentDialog.h
     ui/dialogs/NewInstanceDialog.cpp
+    ui/dialogs/NewInstanceResources.cpp
+    ui/dialogs/NewInstanceResources.h
     ui/dialogs/NewInstanceDialog.h
     ui/dialogs/NewsDialog.cpp
     ui/dialogs/NewsDialog.h
