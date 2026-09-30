@@ -96,7 +96,8 @@ QDateTime tokenExpiry(const QString& accessToken)
         return {};
     }
     const auto payload = QByteArray::fromBase64(parts[1].toLatin1(), QByteArray::Base64UrlEncoding);
-    const auto expiry = QJsonDocument::fromJson(payload).object()["exp"];
+    // value() copies, operator[] on the temporary object would leave a dangling reference
+    const QJsonValue expiry = QJsonDocument::fromJson(payload).object().value("exp");
     if (!expiry.isDouble()) {
         return {};
     }
