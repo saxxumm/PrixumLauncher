@@ -15,6 +15,7 @@
 
 #pragma once
 #include <QHeaderView>
+#include <QIcon>
 #include <QTreeView>
 
 class ModListView : public QTreeView {
@@ -23,4 +24,15 @@ class ModListView : public QTreeView {
     explicit ModListView(QWidget* parent = 0);
     virtual void setModel(QAbstractItemModel* model);
     virtual void setResizeModes(const QList<QHeaderView::ResizeMode>& modes);
+
+    /// shown in the middle of the list while it has no rows
+    void setPlaceholder(const QIcon& icon, const QString& title, const QString& text);
+
+   protected:
+    void paintEvent(QPaintEvent* event) override;
+
+   private:
+    QIcon m_placeholderIcon;
+    QString m_placeholderTitle;
+    QString m_placeholderText;
 };

@@ -101,6 +101,7 @@
 #include "InstanceWindow.h"
 
 #include "ui/GuiUtil.h"
+#include "ui/InstanceSummary.h"
 #include "ui/ViewLogWindow.h"
 #include "ui/dialogs/AboutDialog.h"
 #include "ui/dialogs/CopyInstanceDialog.h"
@@ -710,24 +711,7 @@ void MainWindow::updateInspector()
     ui->novaStatusPill->style()->unpolish(ui->novaStatusPill);
     ui->novaStatusPill->style()->polish(ui->novaStatusPill);
 
-    // version and mod loader
-    {
-        auto profile = instance->getPackProfile();
-        QString version = profile->getComponentVersion("net.minecraft");
-        version = version.isEmpty() ? tr("Unknown version") : tr("Minecraft %1").arg(version);
-        static const QList<std::pair<QString, QString>> s_loaders{ { "net.neoforged", "NeoForge" },
-                                                                   { "net.minecraftforge", "Forge" },
-                                                                   { "net.fabricmc.fabric-loader", "Fabric" },
-                                                                   { "org.quiltmc.quilt-loader", "Quilt" },
-                                                                   { "com.mumfrey.liteloader", "LiteLoader" } };
-        for (const auto& [uid, loader] : s_loaders) {
-            if (auto loaderVersion = profile->getComponentVersion(uid); !loaderVersion.isEmpty()) {
-                version += QString(" · %1 %2").arg(loader, loaderVersion);
-                break;
-            }
-        }
-        ui->versionLabel->setText(version);
-    }
+    ui->versionLabel->setText(InstanceSummary::versionLine(instance));
 
     const bool showTime = instance->settings()->get("ShowGameTime").toBool();
     ui->playtimeIcon->setVisible(showTime);

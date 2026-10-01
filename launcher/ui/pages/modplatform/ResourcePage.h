@@ -76,6 +76,8 @@ class ResourcePage : public QWidget, public BasePage {
     auto getSearchTerm() const -> QString;
     /** Programatically set the term in the search bar. */
     void setSearchTerm(const QString&);
+    /** Sets the term and searches for it right away. */
+    void searchFor(const QString& term);
 
     bool setCurrentPack(ModPlatform::IndexedPack::Ptr);
     auto getCurrentPack() const -> ModPlatform::IndexedPack::Ptr;

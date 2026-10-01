@@ -23,6 +23,7 @@
         <file>icons/coffee.svg</file>
         <file>icons/copy.svg</file>
         <file>icons/cube.svg</file>
+        <file>icons/download.svg</file>
         <file>icons/edit.svg</file>
         <file>icons/export.svg</file>
         <file>icons/folder.svg</file>
@@ -40,6 +41,7 @@
         <file>icons/logs.svg</file>
         <file>icons/menu.svg</file>
         <file>icons/monitor.svg</file>
+        <file>icons/more.svg</file>
         <file>icons/network.svg</file>
         <file>icons/news.svg</file>
         <file>icons/note.svg</file>

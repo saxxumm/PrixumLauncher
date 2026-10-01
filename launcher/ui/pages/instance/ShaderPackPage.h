@@ -41,6 +41,10 @@
 #include "ExternalResourcesPage.h"
 #include "ui/dialogs/ResourceDownloadDialog.h"
 
+class QFrame;
+class QLabel;
+class QPushButton;
+
 class ShaderPackPage : public ExternalResourcesPage {
     Q_OBJECT
    public:
@@ -54,6 +58,8 @@ class ShaderPackPage : public ExternalResourcesPage {
 
     bool shouldDisplay() const override { return true; }
 
+    void openedImpl() override;
+
    public slots:
     void downloadShaderPack();
     void downloadDialogFinished(int result);
@@ -62,6 +68,16 @@ class ShaderPackPage : public ExternalResourcesPage {
     void changeShaderPackVersion();
 
    private:
+    /// Iris, or its Forge port Oculus
+    QString shaderLoader() const;
+    void updateLoaderNotice();
+    void downloadShaderLoader();
+
+   private:
     ShaderPackFolderModel* m_model;
     QPointer<ResourceDownload::ResourceDownloadDialog> m_downloadDialog;
+    QFrame* m_loaderNotice = nullptr;
+    QLabel* m_loaderNoticeText = nullptr;
+    QPushButton* m_loaderNoticeButton = nullptr;
+    bool m_modsListed = false;
 };

@@ -60,8 +60,14 @@ class ModFolderPage : public ExternalResourcesPage {
 
     virtual bool shouldDisplay() const override;
 
+    /// opens the download dialog with a search for the given mod
+    void searchOnline(const QString& term);
+
    public slots:
     void updateFrame(const QModelIndex& current, const QModelIndex& previous) override;
+
+   protected:
+    QString secondaryText(const Resource& resource) const override;
 
    private slots:
     void removeItems(const QItemSelection& selection) override;

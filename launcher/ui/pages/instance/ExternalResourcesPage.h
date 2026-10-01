@@ -5,9 +5,8 @@
 
 #include "Application.h"
 #include "minecraft/MinecraftInstance.h"
+#include "minecraft/mod/ResourceFolderModel.h"
 #include "ui/pages/BasePage.h"
-
-class ResourceFolderModel;
 
 namespace Ui {
 class ExternalResourcesPage;
@@ -28,7 +27,6 @@ class ExternalResourcesPage : public QMainWindow, public BasePage {
     QString helpPage() const override = 0;
 
     bool shouldDisplay() const override = 0;
-    QString extraHeaderInfoString();
 
     void openedImpl() override;
     void closedImpl() override;
@@ -39,6 +37,11 @@ class ExternalResourcesPage : public QMainWindow, public BasePage {
     bool eventFilter(QObject* obj, QEvent* ev) override;
     bool listFilter(QKeyEvent* keyEvent);
     QMenu* createPopupMenu() override;
+
+    /// the muted line under a resource's name, empty for none
+    virtual QString secondaryText(const Resource& resource) const;
+    /// a pack description as one plain line, without Minecraft's formatting codes
+    static QString plainLine(QString text);
 
    public slots:
     virtual void updateActions();
@@ -66,12 +69,17 @@ class ExternalResourcesPage : public QMainWindow, public BasePage {
     void lockUpdates();
     void unlockUpdates();
 
+   private:
+    void setupActionBar();
+    void updateCounts();
+    void updatePlaceholder();
+
    protected:
     MinecraftInstance* m_instance = nullptr;
 
     Ui::ExternalResourcesPage* m_ui = nullptr;
     ResourceFolderModel* m_model;
-    QSortFilterProxyModel* m_filterModel = nullptr;
+    ResourceFolderModel::ProxyModel* m_filterModel = nullptr;
 
     QString m_fileSelectionFilter;
     QString m_viewFilter;

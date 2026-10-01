@@ -181,11 +181,22 @@ class ResourceFolderModel : public QAbstractListModel {
 
     class ProxyModel : public QSortFilterProxyModel {
        public:
+        /// which resources are shown depending on whether they are enabled
+        enum class StateFilter { All, Enabled, Disabled };
+
         explicit ProxyModel(QObject* parent = nullptr) : QSortFilterProxyModel(parent) {}
+
+        void setStateFilter(StateFilter filter);
+        StateFilter stateFilter() const { return m_stateFilter; }
+
+        QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
        protected:
         bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
         bool lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const override;
+
+       private:
+        StateFilter m_stateFilter = StateFilter::All;
     };
 
     QString instDirPath() const;

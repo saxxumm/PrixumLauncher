@@ -37,6 +37,8 @@
 
 #include "ScreenshotsPage.h"
 #include "BuildConfig.h"
+#include "ui/themes/NovaIcons.h"
+#include "ui/widgets/PageActionBar.h"
 #include "ui_ScreenshotsPage.h"
 
 #include <QClipboard>
@@ -278,6 +280,16 @@ ScreenshotsPage::ScreenshotsPage(QString path, QWidget* parent)
 
     ui->setupUi(this);
     ui->toolBar->insertSpacer(ui->actionView_Folder);
+    {
+        using NovaIcons::Tint;
+        ui->actionUpload->setIcon(NovaIcons::icon("export"));
+        ui->actionCopy_Image->setIcon(NovaIcons::icon("image"));
+        ui->actionCopy_File_s->setIcon(NovaIcons::icon("copy"));
+        ui->actionDelete->setIcon(NovaIcons::icon("trash", Tint::Danger));
+        ui->actionRename->setIcon(NovaIcons::icon("rename"));
+        ui->actionView_Folder->setIcon(NovaIcons::icon("folder"));
+        PageActionBar::install(this, ui->toolBar, { nullptr, { ui->actionCopy_Image, ui->actionDelete }, { ui->actionView_Folder } });
+    }
 
     ui->listView->setIconSize(QSize(128, 128));
     ui->listView->setGridSize(QSize(192, 160));

@@ -67,3 +67,50 @@ void ModListView::setResizeModes(const QList<QHeaderView::ResizeMode>& modes)
         head->setSectionResizeMode(i, modes[i]);
     }
 }
+
+void ModListView::setPlaceholder(const QIcon& icon, const QString& title, const QString& text)
+{
+    m_placeholderIcon = icon;
+    m_placeholderTitle = title;
+    m_placeholderText = text;
+    viewport()->update();
+}
+
+void ModListView::paintEvent(QPaintEvent* event)
+{
+    QTreeView::paintEvent(event);
+    if (!model() || model()->rowCount(rootIndex()) > 0 || m_placeholderTitle.isEmpty()) {
+        return;
+    }
+
+    QPainter painter(viewport());
+    const QRect area = viewport()->rect().adjusted(24, 0, -24, 0);
+    const int iconSize = 48;
+    const int textWidth = qMin(area.width(), 440);
+
+    QFont titleFont = font();
+    titleFont.setBold(true);
+    if (titleFont.pointSizeF() > 0) {
+        titleFont.setPointSizeF(titleFont.pointSizeF() * 1.2);
+    }
+    const QFontMetrics titleMetrics(titleFont);
+    const QRect textBounds =
+        fontMetrics().boundingRect(QRect(0, 0, textWidth, 1000), Qt::AlignHCenter | Qt::TextWordWrap, m_placeholderText);
+
+    const int spacing = 12;
+    const int total = iconSize + spacing + titleMetrics.height() + 6 + textBounds.height();
+    int y = area.center().y() - total / 2;
+
+    m_placeholderIcon.paint(&painter, QRect(area.center().x() - iconSize / 2, y, iconSize, iconSize));
+    y += iconSize + spacing;
+
+    painter.setFont(titleFont);
+    painter.setPen(palette().color(QPalette::Text));
+    painter.drawText(QRect(area.left(), y, area.width(), titleMetrics.height()), Qt::AlignCenter, m_placeholderTitle);
+    y += titleMetrics.height() + 6;
+
+    painter.setFont(font());
+    painter.setPen(palette().color(QPalette::PlaceholderText));
+    painter.drawText(QRect(area.center().x() - textWidth / 2, y, textWidth, textBounds.height()), Qt::AlignHCenter | Qt::TextWordWrap,
+                     m_placeholderText);
+}

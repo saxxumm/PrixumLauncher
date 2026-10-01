@@ -74,6 +74,13 @@ ResourcePackPage::ResourcePackPage(MinecraftInstance* instance, ResourcePackFold
     m_ui->actionsToolbar->insertActionAfter(m_ui->actionLockUpdates, m_ui->actionUnlockUpdates);
 }
 
+QString ResourcePackPage::secondaryText(const Resource& resource) const
+{
+    // what the pack says about itself tells more than its file name
+    const auto description = plainLine(static_cast<const ResourcePack&>(resource).description());
+    return description.isEmpty() ? ExternalResourcesPage::secondaryText(resource) : description;
+}
+
 void ResourcePackPage::updateFrame(const QModelIndex& current, [[maybe_unused]] const QModelIndex& previous)
 {
     auto sourceCurrent = m_filterModel->mapToSource(current);

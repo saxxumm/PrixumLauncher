@@ -196,6 +196,12 @@ void ResourcePage::setSearchTerm(const QString& term)
     m_ui->searchEdit->setText(term);
 }
 
+void ResourcePage::searchFor(const QString& term)
+{
+    setSearchTerm(term);
+    triggerSearch();
+}
+
 void ResourcePage::addSortings()
 {
     Q_ASSERT(m_model);

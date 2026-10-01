@@ -34,6 +34,9 @@ class DataPackPage : public ExternalResourcesPage {
     QString helpPage() const override { return "Data-packs"; }
     bool shouldDisplay() const override { return true; }
 
+   protected:
+    QString secondaryText(const Resource& resource) const override;
+
    public slots:
     void updateFrame(const QModelIndex& current, const QModelIndex& previous) override;
     void downloadDataPacks();

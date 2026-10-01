@@ -92,7 +92,7 @@ void InfoFrame::updateWithMod(const Mod& m)
         text = "<a href=\"" + QUrl(link).toEncoded() + "\">" + name + "</a>";
     }
     if (!m.authors().isEmpty())
-        text += " by " + m.authors().join(", ");
+        text = tr("%1 by %2", "a mod and its authors").arg(text, m.authors().join(", "));
 
     setName(text);
 

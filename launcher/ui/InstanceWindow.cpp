@@ -36,20 +36,27 @@
 
 #include "InstanceWindow.h"
 #include "Application.h"
+#include "ui/InstanceSummary.h"
 #include "ui/themes/NovaIcons.h"
 
 #include <QCloseEvent>
+#include <QFrame>
+#include <QGuiApplication>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScreen>
 #include <QScrollBar>
 #include <QTimer>
+#include <QVBoxLayout>
 
 #include "ui/widgets/PageContainer.h"
 
 #include "InstancePageProvider.h"
 
 #include "icons/IconList.h"
+#include "minecraft/PackProfile.h"
 
 InstanceWindow::InstanceWindow(MinecraftInstance* instance, QWidget* parent) : QMainWindow(parent), m_instance(instance)
 {
@@ -71,6 +78,7 @@ InstanceWindow::InstanceWindow(MinecraftInstance* instance, QWidget* parent) : Q
         m_container->setParentContainer(this);
         setCentralWidget(m_container);
         setContentsMargins(0, 0, 0, 0);
+        createSidebarHeader();
     }
 
     // Add custom buttons to the page container layout.
@@ -132,7 +140,12 @@ InstanceWindow::InstanceWindow(MinecraftInstance* instance, QWidget* parent) : Q
         auto base64State = APPLICATION->settings()->get("ConsoleWindowState").toString().toUtf8();
         restoreState(QByteArray::fromBase64(base64State));
         auto base64Geometry = APPLICATION->settings()->get("ConsoleWindowGeometry").toString().toUtf8();
-        restoreGeometry(QByteArray::fromBase64(base64Geometry));
+        // the mods page needs room for its toolbar and columns, the size Qt picks on its own is too small
+        if (!restoreGeometry(QByteArray::fromBase64(base64Geometry))) {
+            if (auto* screen = QGuiApplication::primaryScreen()) {
+                resize(QSize(1180, 760).boundedTo(screen->availableSize() * 0.9));
+            }
+        }
     }
 
     // set up instance and launch process recognition
@@ -154,6 +167,60 @@ InstanceWindow::InstanceWindow(MinecraftInstance* instance, QWidget* parent) : Q
     }
 
     show();
+}
+
+void InstanceWindow::createSidebarHeader()
+{
+    auto* header = new QFrame(this);
+    header->setObjectName("instanceHeader");
+    // keeps "Minecraft 1.21.4 · Fabric 0.16.9" on one line
+    header->setMinimumWidth(256);
+    auto* layout = new QHBoxLayout(header);
+    layout->setContentsMargins(14, 14, 12, 12);
+    layout->setSpacing(10);
+
+    m_headerIcon = new QLabel(header);
+    m_headerIcon->setFixedSize(36, 36);
+    layout->addWidget(m_headerIcon, 0, Qt::AlignTop);
+
+    auto* text = new QVBoxLayout;
+    text->setSpacing(1);
+    m_headerName = new QLabel(header);
+    m_headerName->setObjectName("instanceHeaderName");
+    m_headerName->setWordWrap(true);
+    m_headerVersion = new QLabel(header);
+    m_headerVersion->setProperty("novaRole", "muted");
+    m_headerVersion->setWordWrap(true);
+    text->addWidget(m_headerName);
+    text->addWidget(m_headerVersion);
+    layout->addLayout(text, 1);
+    m_container->setSidebarHeader(header);
+
+    connect(m_instance, &BaseInstance::propertiesChanged, this, &InstanceWindow::updateSidebarHeader);
+    connect(APPLICATION->icons(), &IconList::iconUpdated, this, [this](const QString& key) {
+        if (key == m_instance->iconKey()) {
+            updateSidebarHeader();
+        }
+    });
+    // versions change on the version page
+    auto* profile = m_instance->getPackProfile();
+    connect(profile, &PackProfile::dataChanged, this, &InstanceWindow::updateSidebarHeader);
+    connect(profile, &PackProfile::rowsInserted, this, &InstanceWindow::updateSidebarHeader);
+    connect(profile, &PackProfile::rowsRemoved, this, &InstanceWindow::updateSidebarHeader);
+    connect(profile, &PackProfile::modelReset, this, &InstanceWindow::updateSidebarHeader);
+    updateSidebarHeader();
+}
+
+void InstanceWindow::updateSidebarHeader()
+{
+    m_headerIcon->setPixmap(APPLICATION->icons()->getIcon(m_instance->iconKey()).pixmap(m_headerIcon->size()));
+    m_headerName->setText(m_instance->name());
+    // wraps between Minecraft and the mod loader, never inside "Fabric 0.16.9"
+    auto parts = InstanceSummary::versionLine(m_instance).split(" · ");
+    for (auto& part : parts) {
+        part.replace(' ', QChar::Nbsp);
+    }
+    m_headerVersion->setText(parts.join(" · "));
 }
 
 void InstanceWindow::on_instanceStatusChanged(BaseInstance::Status, BaseInstance::Status newStatus)

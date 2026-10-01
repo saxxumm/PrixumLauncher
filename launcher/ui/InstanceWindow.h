@@ -47,6 +47,7 @@
 
 #include "QObjectPtr.h"
 
+class QLabel;
 class QPushButton;
 class PageContainer;
 class InstanceWindow : public QMainWindow, public BasePageContainer {
@@ -82,6 +83,8 @@ class InstanceWindow : public QMainWindow, public BasePageContainer {
 
    private:
     void updateButtons();
+    void createSidebarHeader();
+    void updateSidebarHeader();
 
    private:
     LaunchTask* m_proc;
@@ -93,4 +96,7 @@ class InstanceWindow : public QMainWindow, public BasePageContainer {
     QToolButton* m_launchButton = nullptr;
     QPushButton* m_restartButton = nullptr;
     QPushButton* m_killButton = nullptr;
+    QLabel* m_headerIcon = nullptr;
+    QLabel* m_headerName = nullptr;
+    QLabel* m_headerVersion = nullptr;
 };

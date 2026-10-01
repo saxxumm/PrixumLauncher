@@ -823,6 +823,8 @@ SET(LAUNCHER_SOURCES
     ui/MainWindow.cpp
     ui/InstanceWindow.h
     ui/InstanceWindow.cpp
+    ui/InstanceSummary.h
+    ui/InstanceSummary.cpp
     ui/ViewLogWindow.h
     ui/ViewLogWindow.cpp
     ui/ToolTipFilter.h
@@ -1155,6 +1157,8 @@ SET(LAUNCHER_SOURCES
     ui/widgets/ProgressWidget.cpp
     ui/widgets/WideBar.h
     ui/widgets/WideBar.cpp
+    ui/widgets/PageActionBar.h
+    ui/widgets/PageActionBar.cpp
     ui/widgets/AppearanceWidget.h
     ui/widgets/AppearanceWidget.cpp
     ui/widgets/MinecraftSettingsWidget.h

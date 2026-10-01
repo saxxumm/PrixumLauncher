@@ -38,7 +38,18 @@
 #include "ShaderPackPage.h"
 #include "ui_ExternalResourcesPage.h"
 
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <algorithm>
+
+#include "ModFolderPage.h"
+#include "minecraft/PackProfile.h"
+#include "minecraft/mod/Mod.h"
+#include "minecraft/mod/ModFolderModel.h"
 #include "minecraft/mod/ShaderPackFolderModel.h"
+#include "ui/themes/NovaIcons.h"
 
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProgressDialog.h"
@@ -75,6 +86,76 @@ ShaderPackPage::ShaderPackPage(MinecraftInstance* instance, ShaderPackFolderMode
 
     m_ui->actionsToolbar->insertActionAfter(m_ui->actionChangeVersion, m_ui->actionLockUpdates);
     m_ui->actionsToolbar->insertActionAfter(m_ui->actionLockUpdates, m_ui->actionUnlockUpdates);
+
+    // the game ignores shader packs without Iris or Oculus, say so before someone wonders why nothing changed
+    m_loaderNotice = new QFrame(this);
+    m_loaderNotice->setObjectName("shaderLoaderNotice");
+    auto* noticeLayout = new QHBoxLayout(m_loaderNotice);
+    noticeLayout->setContentsMargins(12, 8, 8, 8);
+    noticeLayout->setSpacing(10);
+    auto* noticeIcon = new QLabel(m_loaderNotice);
+    noticeIcon->setPixmap(NovaIcons::icon("sparkles", NovaIcons::Tint::Accent).pixmap(20, 20));
+    noticeLayout->addWidget(noticeIcon);
+    m_loaderNoticeText = new QLabel(m_loaderNotice);
+    m_loaderNoticeText->setWordWrap(true);
+    noticeLayout->addWidget(m_loaderNoticeText, 1);
+    m_loaderNoticeButton = new QPushButton(m_loaderNotice);
+    m_loaderNoticeButton->setIcon(NovaIcons::icon("download"));
+    noticeLayout->addWidget(m_loaderNoticeButton);
+    connect(m_loaderNoticeButton, &QPushButton::clicked, this, &ShaderPackPage::downloadShaderLoader);
+    m_loaderNotice->hide();
+    m_ui->pageLayout->insertWidget(0, m_loaderNotice);
+
+    auto* mods = m_instance->loaderModList();
+    connect(mods, &ResourceFolderModel::updateFinished, this, [this] {
+        m_modsListed = true;
+        updateLoaderNotice();
+    });
+    connect(mods, &ResourceFolderModel::parseFinished, this, &ShaderPackPage::updateLoaderNotice);
+}
+
+void ShaderPackPage::openedImpl()
+{
+    ExternalResourcesPage::openedImpl();
+    // the mods may not be listed yet when the mods page was never opened
+    m_instance->loaderModList()->update();
+    updateLoaderNotice();
+}
+
+QString ShaderPackPage::shaderLoader() const
+{
+    return m_instance->getPackProfile()->getComponent("net.minecraftforge") ? "Oculus" : "Iris";
+}
+
+void ShaderPackPage::updateLoaderNotice()
+{
+    if (!m_modsListed) {
+        return;
+    }
+    // by file name too, the mod id is only known once the jar was read
+    const auto mods = m_instance->loaderModList()->allMods();
+    const bool installed = std::ranges::any_of(mods, [](Mod* mod) {
+        if (!mod->enabled()) {
+            return false;
+        }
+        const auto fileName = mod->fileinfo().fileName().toLower();
+        return std::ranges::any_of(std::initializer_list<const char*>{ "iris", "oculus", "optifine" },
+                                   [&](const char* loader) { return mod->modId() == loader || fileName.startsWith(loader); });
+    });
+    const auto loader = shaderLoader();
+    m_loaderNoticeText->setText(tr("Shader packs need the %1 mod, without it the game ignores them.").arg(loader));
+    m_loaderNoticeButton->setText(tr("Download %1").arg(loader));
+    m_loaderNotice->setVisible(!installed);
+}
+
+void ShaderPackPage::downloadShaderLoader()
+{
+    if (!m_container || !m_container->selectPage("mods")) {
+        return;
+    }
+    if (auto* modsPage = dynamic_cast<ModFolderPage*>(m_container->selectedPage())) {
+        modsPage->searchOnline(shaderLoader());
+    }
 }
 
 void ShaderPackPage::downloadShaderPack()

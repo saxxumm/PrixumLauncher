@@ -42,6 +42,8 @@
 #include "settings/SettingsObject.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProgressDialog.h"
+#include "ui/themes/NovaIcons.h"
+#include "ui/widgets/PageActionBar.h"
 #include "ui_WorldListPage.h"
 
 #include <ui/widgets/PageContainer.h>
@@ -102,6 +104,22 @@ WorldListPage::WorldListPage(MinecraftInstance* inst, WorldList* worlds, QWidget
     m_ui->setupUi(this);
 
     m_ui->toolBar->insertSpacer(m_ui->actionRefresh);
+    {
+        using NovaIcons::Tint;
+        m_ui->actionAdd->setIcon(NovaIcons::icon("plus", Tint::AccentText));
+        m_ui->actionJoin->setIcon(NovaIcons::icon("play"));
+        m_ui->actionRename->setIcon(NovaIcons::icon("rename"));
+        m_ui->actionCopy->setIcon(NovaIcons::icon("copy"));
+        m_ui->actionRemove->setIcon(NovaIcons::icon("trash", Tint::Danger));
+        m_ui->actionData_Packs->setIcon(NovaIcons::icon("archive"));
+        m_ui->actionWorldTools->setIcon(NovaIcons::icon("wrench"));
+        m_ui->actionReset_Icon->setIcon(NovaIcons::icon("image"));
+        m_ui->actionCopy_Seed->setIcon(NovaIcons::icon("copy"));
+        m_ui->actionRefresh->setIcon(NovaIcons::icon("refresh"));
+        m_ui->actionView_Folder->setIcon(NovaIcons::icon("folder"));
+        PageActionBar::install(this, m_ui->toolBar,
+                               { m_ui->actionAdd, { m_ui->actionData_Packs, m_ui->actionRemove }, { m_ui->actionView_Folder } });
+    }
 
     auto* proxy = new WorldListProxyModel(this);
     proxy->setSortCaseSensitivity(Qt::CaseInsensitive);

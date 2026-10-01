@@ -60,6 +60,9 @@ class ResourcePackPage : public ExternalResourcesPage {
         return !m_instance->traits().contains("no-texturepacks") && !m_instance->traits().contains("texturepacks");
     }
 
+   protected:
+    QString secondaryText(const Resource& resource) const override;
+
    public slots:
     void updateFrame(const QModelIndex& current, const QModelIndex& previous) override;
 

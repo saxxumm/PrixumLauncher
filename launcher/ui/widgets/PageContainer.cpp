@@ -40,6 +40,7 @@
 #include "PageContainer_p.h"
 
 #include <QDialogButtonBox>
+#include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -49,6 +50,7 @@
 #include <QStackedLayout>
 #include <QStyledItemDelegate>
 #include <QUrl>
+#include <QVBoxLayout>
 #include <utility>
 
 #include "settings/SettingsObject.h"
@@ -215,6 +217,23 @@ void PageContainer::addButtons(QWidget* buttons)
 void PageContainer::addButtons(QLayout* buttons)
 {
     m_layout->addLayout(buttons, 2, 1, 1, 2);
+}
+
+void PageContainer::setSidebarHeader(QWidget* header)
+{
+    // one frame holds both, so the sidebar border runs along the header too
+    auto* sidebar = new QFrame(this);
+    sidebar->setObjectName("pageSidebar");
+    auto* layout = new QVBoxLayout(sidebar);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    m_layout->removeWidget(m_pageList);
+    // the page list decides how wide the sidebar is
+    header->setSizePolicy(QSizePolicy::Ignored, header->sizePolicy().verticalPolicy());
+    layout->addWidget(header);
+    layout->addWidget(m_pageList, 1);
+    m_layout->addWidget(sidebar, 0, 0, 3, 1);
+    m_sidebar = sidebar;
 }
 
 void PageContainer::useSidebarStyle(bool sidebar)

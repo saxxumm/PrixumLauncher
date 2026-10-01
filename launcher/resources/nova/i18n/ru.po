@@ -70,10 +70,6 @@ msgid "Library"
 msgstr "Библиотека"
 
 msgctxt "MainWindow"
-msgid "Minecraft %1"
-msgstr "Minecraft %1"
-
-msgctxt "MainWindow"
 msgid "Name"
 msgstr "Название"
 
@@ -140,10 +136,6 @@ msgstr "&Редактор тем..."
 msgctxt "MainWindow"
 msgid "Ungrouped"
 msgstr "Без группы"
-
-msgctxt "MainWindow"
-msgid "Unknown version"
-msgstr "Неизвестная версия"
 
 msgctxt "MainWindow"
 msgid "Welcome!"
@@ -817,3 +809,103 @@ msgstr "Эксперименты"
 msgctxt "CustomPage"
 msgid "Mods, resource packs and shaders for the chosen version."
 msgstr "Моды, ресурспаки и шейдеры для выбранной версии."
+
+msgctxt "ExternalResourcesPage"
+msgid "More actions"
+msgstr "Другие действия"
+
+msgctxt "ExternalResourcesPage"
+msgid "All (%1)"
+msgstr "Все (%1)"
+
+msgctxt "ExternalResourcesPage"
+msgid "Enabled (%1)"
+msgstr "Включённые (%1)"
+
+msgctxt "ExternalResourcesPage"
+msgid "Disabled (%1)"
+msgstr "Отключённые (%1)"
+
+msgctxt "ExternalResourcesPage"
+msgid "Selected: %1"
+msgstr "Выбрано: %1"
+
+msgctxt "ExternalResourcesPage"
+msgid "Nothing here yet"
+msgstr "Здесь пока пусто"
+
+msgctxt "ExternalResourcesPage"
+msgid "Press \"%1\" to find something on Modrinth and CurseForge, or drop files here."
+msgstr "Нажмите «%1», чтобы найти что-нибудь на Modrinth и CurseForge, или перетащите файлы сюда."
+
+msgctxt "ExternalResourcesPage"
+msgid "Nothing found"
+msgstr "Ничего не найдено"
+
+msgctxt "ExternalResourcesPage"
+msgid "Try another search or filter."
+msgstr "Попробуйте другой запрос или фильтр."
+
+msgctxt "ExternalResourcesPage"
+msgid "View Homepage"
+msgstr "Открыть сайт"
+
+msgctxt "ExternalResourcesPage"
+msgid "Lock Updates"
+msgstr "Запретить обновления"
+
+msgctxt "ExternalResourcesPage"
+msgid "Unlock Updates"
+msgstr "Разрешить обновления"
+
+msgctxt "ModFolderPage"
+msgid "Download Mods"
+msgstr "Скачать моды"
+
+msgctxt "ResourcePackPage"
+msgid "Download Packs"
+msgstr "Скачать ресурспаки"
+
+msgctxt "TexturePackPage"
+msgid "Download Packs"
+msgstr "Скачать текстурпаки"
+
+msgctxt "ShaderPackPage"
+msgid "Download Packs"
+msgstr "Скачать шейдеры"
+
+msgctxt "DataPackPage"
+msgid "Download Packs"
+msgstr "Скачать датапаки"
+
+msgctxt "InfoFrame|a mod and its authors"
+msgid "%1 by %2"
+msgstr "%1 — %2"
+
+msgctxt "InstanceSummary"
+msgid "Minecraft %1"
+msgstr "Minecraft %1"
+
+msgctxt "InstanceSummary"
+msgid "Unknown version"
+msgstr "Неизвестная версия"
+
+msgctxt "ExternalResourcesPage"
+msgid "%1 · disabled"
+msgstr "%1 · отключён"
+
+msgctxt "ExternalResourcesPage"
+msgid "disabled"
+msgstr "отключён"
+
+msgctxt "ShaderPackPage"
+msgid "Shader packs need the %1 mod, without it the game ignores them."
+msgstr "Для шейдеров нужен мод %1, без него игра их не подхватит."
+
+msgctxt "ShaderPackPage"
+msgid "Download %1"
+msgstr "Скачать %1"
+
+msgctxt "PageActionBar"
+msgid "More actions"
+msgstr "Другие действия"

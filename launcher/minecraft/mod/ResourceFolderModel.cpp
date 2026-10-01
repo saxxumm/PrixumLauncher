@@ -845,8 +845,32 @@ bool ResourceFolderModel::ProxyModel::filterAcceptsRow(int sourceRow, [[maybe_un
     }
 
     const auto& resource = model->at(sourceRow);
+    if (m_stateFilter != StateFilter::All && resource.enabled() != (m_stateFilter == StateFilter::Enabled)) {
+        return false;
+    }
 
     return resource.applyFilter(filterRegularExpression());
+}
+
+QVariant ResourceFolderModel::ProxyModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    // checkboxes and icons speak for themselves, their columns stay narrow without a title
+    if (auto* model = qobject_cast<ResourceFolderModel*>(sourceModel());
+        model && role == Qt::DisplayRole && orientation == Qt::Horizontal) {
+        if (const auto name = model->columnNames(false).value(section); name == "Enable" || name == "Image") {
+            return QString();
+        }
+    }
+    return QSortFilterProxyModel::headerData(section, orientation, role);
+}
+
+void ResourceFolderModel::ProxyModel::setStateFilter(StateFilter filter)
+{
+    if (m_stateFilter == filter) {
+        return;
+    }
+    m_stateFilter = filter;
+    invalidateRowsFilter();
 }
 
 bool ResourceFolderModel::ProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const

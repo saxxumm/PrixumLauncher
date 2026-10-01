@@ -56,6 +56,8 @@
 #include "meta/JsonFormat.h"
 #include "tasks/SequentialTask.h"
 #include "ui/dialogs/InstallLoaderDialog.h"
+#include "ui/themes/NovaIcons.h"
+#include "ui/widgets/PageActionBar.h"
 #include "ui_VersionPage.h"
 
 #include "ui/dialogs/CustomMessageBox.h"
@@ -133,6 +135,24 @@ VersionPage::VersionPage(MinecraftInstance* inst, QWidget* parent) : QMainWindow
     ui->setupUi(this);
 
     ui->toolBar->insertSpacer(ui->actionReload);
+    {
+        using NovaIcons::Tint;
+        ui->actionInstall_Loader->setIcon(NovaIcons::icon("wrench", Tint::AccentText));
+        ui->actionChange_version->setIcon(NovaIcons::icon("history"));
+        ui->actionRemove->setIcon(NovaIcons::icon("trash", Tint::Danger));
+        ui->actionCustomize->setIcon(NovaIcons::icon("edit"));
+        ui->actionEdit->setIcon(NovaIcons::icon("edit"));
+        ui->actionAdd_to_Minecraft_jar->setIcon(NovaIcons::icon("jar"));
+        ui->actionReplace_Minecraft_jar->setIcon(NovaIcons::icon("jar"));
+        ui->actionAdd_Agents->setIcon(NovaIcons::icon("plus"));
+        ui->actionAdd_Empty->setIcon(NovaIcons::icon("plus-square"));
+        ui->actionImport_Components->setIcon(NovaIcons::icon("export"));
+        ui->actionMinecraftFolder->setIcon(NovaIcons::icon("folder"));
+        ui->actionLibrariesFolder->setIcon(NovaIcons::icon("library"));
+        ui->actionReload->setIcon(NovaIcons::icon("refresh"));
+        ui->actionDownload_All->setIcon(NovaIcons::icon("download"));
+        PageActionBar::install(this, ui->toolBar, { ui->actionInstall_Loader, { ui->actionChange_version, ui->actionRemove }, {} });
+    }
 
     m_profile = m_inst->getPackProfile();
 

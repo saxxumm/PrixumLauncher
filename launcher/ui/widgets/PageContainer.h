@@ -90,7 +90,10 @@ class PageContainer : public QWidget, public BasePageContainer {
 
     void changeEvent(QEvent*) override;
 
-    void hidePageList() { m_pageList->hide(); }
+    void hidePageList() { (m_sidebar ? m_sidebar : m_pageList)->hide(); }
+
+    /// puts a widget above the page list, the container takes ownership
+    void setSidebarHeader(QWidget* header);
 
    private:
     void createUI();
@@ -114,6 +117,7 @@ class PageContainer : public QWidget, public BasePageContainer {
     PageModel* m_model;
     QStackedLayout* m_pageStack;
     QListView* m_pageList;
+    QWidget* m_sidebar = nullptr;
     QLabel* m_header;
     QGridLayout* m_layout;
 };

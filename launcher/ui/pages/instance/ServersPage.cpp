@@ -39,6 +39,8 @@
 #include "Application.h"
 #include "ServerPingTask.h"
 #include "ui/dialogs/CustomMessageBox.h"
+#include "ui/themes/NovaIcons.h"
+#include "ui/widgets/PageActionBar.h"
 #include "ui_ServersPage.h"
 
 #include <FileSystem.h>
@@ -557,6 +559,14 @@ class ServersModel : public QAbstractListModel {
 ServersPage::ServersPage(MinecraftInstance* inst, QWidget* parent) : QMainWindow(parent), ui(new Ui::ServersPage)
 {
     ui->setupUi(this);
+    {
+        using NovaIcons::Tint;
+        ui->actionAdd->setIcon(NovaIcons::icon("plus", Tint::AccentText));
+        ui->actionJoin->setIcon(NovaIcons::icon("play"));
+        ui->actionRemove->setIcon(NovaIcons::icon("trash", Tint::Danger));
+        ui->actionRefresh->setIcon(NovaIcons::icon("refresh"));
+        PageActionBar::install(this, ui->toolBar, { ui->actionAdd, { ui->actionJoin, ui->actionRemove }, { ui->actionRefresh } });
+    }
     m_inst = inst;
     m_model = new ServersModel(inst->gameRoot(), this);
     ui->serversView->setIconSize(QSize(64, 64));

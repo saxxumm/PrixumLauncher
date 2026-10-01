@@ -1150,3 +1150,91 @@ QPushButton[novaRole="choice"]:checked {
 QPushButton[novaRole="choice"]:disabled {
     color: @textDisabled;
 }
+
+/* ---------- mods, resource packs, shader packs ---------- */
+
+QToolButton[novaRole="secondary"] {
+    background: @surfaceAlt;
+    color: @text;
+    border: 1px solid @border;
+    border-radius: @controlRadius;
+    padding: 6px 10px;
+}
+
+QToolButton[novaRole="secondary"]:hover {
+    background: @hover;
+    border-color: @borderStrong;
+}
+
+QToolButton[novaRole="secondary"]:pressed {
+    background: @pressed;
+}
+
+QToolButton[novaRole="secondary"]:disabled {
+    background: @surface;
+    color: @textDisabled;
+}
+
+QToolButton[novaRole="secondary"][popupMode="1"] {
+    padding-right: 30px;
+}
+
+QToolButton[novaRole="secondary"]::menu-button {
+    border: none;
+    border-left: 1px solid @border;
+    width: 24px;
+}
+
+/* the "more" button opens its menu right away and needs no arrow */
+QToolButton[novaRole="secondary"][popupMode="2"] {
+    padding: 6px 8px;
+}
+
+QToolButton[novaRole="secondary"][popupMode="2"]::menu-indicator {
+    image: none;
+    width: 0px;
+}
+
+QMainWindow#ExternalResourcesPage QToolButton[novaRole="primary"], QWidget#pageActionBar QToolButton[novaRole="primary"] {
+    padding: 6px 14px;
+}
+
+QToolButton[novaRole="danger"] {
+    color: @danger;
+}
+
+QToolButton[novaRole="danger"]:hover {
+    background: @dangerSoft;
+}
+
+QMainWindow#ExternalResourcesPage QLineEdit#filterEdit {
+    padding: 6px 8px;
+}
+
+/* the instance window puts the instance above its page list */
+QFrame#pageSidebar {
+    background: transparent;
+    border: none;
+    border-right: 1px solid @border;
+}
+
+QFrame#pageSidebar QListView#pageList {
+    border-right: none;
+}
+
+QFrame#instanceHeader {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid @border;
+}
+
+QLabel#instanceHeaderName {
+    font-size: @subtitleSize;
+    font-weight: 700;
+}
+
+QFrame#shaderLoaderNotice {
+    background: @accentSoft;
+    border: 1px solid @accent;
+    border-radius: @radius;
+}

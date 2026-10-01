@@ -59,6 +59,7 @@
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ResourceDownloadDialog.h"
 #include "ui/dialogs/ResourceUpdateDialog.h"
+#include "ui/pages/modplatform/ResourcePage.h"
 
 #include "minecraft/PackProfile.h"
 #include "minecraft/VersionFilterData.h"
@@ -142,6 +143,13 @@ void ModFolderPage::updateFrame(const QModelIndex& current, [[maybe_unused]] con
     m_ui->frame->updateWithMod(mod);
 }
 
+QString ModFolderPage::secondaryText(const Resource& resource) const
+{
+    // the authors tell more about a mod than its file name
+    const auto authors = static_cast<const Mod&>(resource).authors();
+    return authors.isEmpty() ? ExternalResourcesPage::secondaryText(resource) : authors.join(", ");
+}
+
 void ModFolderPage::removeItems(const QItemSelection& selection)
 {
     if (m_instance != nullptr && m_instance->isRunning()) {
@@ -195,6 +203,16 @@ void ModFolderPage::downloadMods()
     connect(m_downloadDialog, &QDialog::finished, this, &ModFolderPage::downloadDialogFinished);
 
     m_downloadDialog->open();
+}
+
+void ModFolderPage::searchOnline(const QString& term)
+{
+    downloadMods();
+    if (m_downloadDialog) {
+        if (auto* page = m_downloadDialog->selectedPage()) {
+            page->searchFor(term);
+        }
+    }
 }
 
 void ModFolderPage::downloadDialogFinished(int result)
