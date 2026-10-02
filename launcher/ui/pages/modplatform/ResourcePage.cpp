@@ -52,8 +52,10 @@
 
 #include "Application.h"
 #include "Json.h"
+#include "settings/Setting.h"
 #include "ui/dialogs/ResourceDownloadDialog.h"
 #include "ui/pages/modplatform/ResourceModel.h"
+#include "ui/themes/NovaIcons.h"
 #include "ui/widgets/ProjectItem.h"
 
 namespace ResourceDownload {
@@ -104,6 +106,22 @@ ResourcePage::ResourcePage(ResourceDownloadDialog* parent,
         m_searchTimer.start(350);
     });
 
+    m_ui->searchEdit->addAction(NovaIcons::icon("search", NovaIcons::Tint::Muted), QLineEdit::LeadingPosition);
+    m_ui->resourceFilterButton->setIcon(NovaIcons::icon("sliders"));
+    m_ui->packView->setObjectName("packView");
+    m_ui->packDescription->setPlaceholderText(tr("Pick something in the list to see its description and versions."));
+    // inside the download dialog these must not turn into its default button
+    m_ui->resourceFilterButton->setAutoDefault(false);
+    m_ui->resourceSelectionButton->setAutoDefault(false);
+    m_ui->detailsButton->setAutoDefault(false);
+    m_ui->detailsButton->setIcon(NovaIcons::icon("panel"));
+    connect(m_ui->detailsButton, &QPushButton::toggled, this, &ResourcePage::setDetailsVisible);
+    // the list gets the room, filters and details keep their width when the dialog grows
+    m_ui->splitter->setStretchFactor(0, 0);
+    m_ui->splitter->setStretchFactor(1, 3);
+    m_ui->splitter->setStretchFactor(2, 2);
+    showEmptyDetails();
+
     // hide progress bar to prevent weird artifact
     m_fetchProgress.hide();
     m_fetchProgress.hideIfInactive(true);
@@ -141,9 +159,9 @@ void ResourcePage::openedImpl()
         m_ui->filterWidget->hide();
     }
 
-    //: String in the search bar of the mod downloading dialog
-    m_ui->searchEdit->setPlaceholderText(tr("Search for %1...").arg(resourcesString()));
-    m_ui->resourceSelectionButton->setText(tr("Select %1 for download").arg(resourceString()));
+    //: String in the search bar of the mod downloading dialog, %1 is Modrinth or CurseForge
+    m_ui->searchEdit->setPlaceholderText(tr("Search on %1…").arg(displayName()));
+    m_ui->resourceSelectionButton->setText(tr("Add"));
 
     auto currentPack = getCurrentPack();
     bool hasSelectedPack = currentPack && currentPack->versionsLoaded;
@@ -158,6 +176,18 @@ void ResourcePage::openedImpl()
     }
     updateSelectionButton();
     m_ui->searchEdit->setFocus();
+    // the other platform's page may have collapsed the details meanwhile
+    if (!m_projectMode) {
+        m_ui->detailsButton->setChecked(APPLICATION->settings()->getOrRegisterSetting("DownloadDetailsVisible", true)->get().toBool());
+    }
+}
+
+void ResourcePage::setDetailsVisible(bool visible)
+{
+    m_ui->detailsPanel->setVisible(visible);
+    if (!m_projectMode) {
+        APPLICATION->settings()->getOrRegisterSetting("DownloadDetailsVisible", true)->set(visible);
+    }
 }
 
 void ResourcePage::setSuppressInitialSearch(bool suppress)
@@ -234,70 +264,57 @@ void ResourcePage::updateUi(const QModelIndex& index)
 
     auto currentPack = getCurrentPack();
     if (!currentPack) {
-        m_ui->packDescription->setHtml({});
-        m_ui->packDescription->flush();
+        showEmptyDetails();
         return;
     }
-    QString text = "";
-    QString name = currentPack->name;
+    m_ui->detailsHeader->show();
+    m_ui->versionRow->show();
 
-    if (currentPack->websiteUrl.isEmpty()) {
-        text = name;
-    } else {
-        text = "<a href=\"" + currentPack->websiteUrl + "\">" + name + "</a>";
-    }
-
+    // icon, name, authors and downloads above the description
+    const auto icon = m_model->data(index, Qt::DecorationRole).value<QIcon>();
+    m_ui->packIcon->setPixmap(icon.pixmap(m_ui->packIcon->size()));
+    m_ui->packTitle->setText(currentPack->name);
+    QStringList meta;
     if (!currentPack->authors.empty()) {
-        auto authorToStr = [](ModPlatform::ModpackAuthor& author) -> QString {
-            if (author.url.isEmpty()) {
-                return author.name;
-            }
-            return QString("<a href=\"%1\">%2</a>").arg(author.url, author.name);
-        };
-        QStringList authorStrs;
-        for (auto& author : currentPack->authors) {
-            authorStrs.push_back(authorToStr(author));
+        QStringList authors;
+        for (const auto& author : currentPack->authors) {
+            authors << author.name;
         }
-        text += "<br>" + tr(" by ") + authorStrs.join(", ");
+        meta << authors.join(", ");
     }
+    if (currentPack->downloadCount >= 0) {
+        meta << ProjectItemDelegate::downloadsText(currentPack->downloadCount);
+    }
+    m_ui->packMeta->setText(meta.join(" · "));
+    m_ui->packMeta->setVisible(!meta.isEmpty());
 
+    // links as words in one line, the addresses themselves are only noise
+    QStringList links;
+    auto addLink = [&links](const QString& url, const QString& label) {
+        if (!url.isEmpty()) {
+            links << QString("<a href=\"%1\">%2</a>").arg(url.toHtmlEscaped(), label.toHtmlEscaped());
+        }
+    };
+    addLink(currentPack->websiteUrl, tr("Project page"));
+    QString text;
     if (currentPack->extraDataLoaded) {
         if (currentPack->extraData.status == "archived") {
-            text += "<br><br>" + tr("<b>This project has been archived. It will not receive any further updates unless the author decides "
-                                    "to unarchive the project.</b>");
+            text += "<p>" +
+                    tr("<b>This project has been archived. It will not receive any further updates unless the author decides "
+                       "to unarchive the project.</b>") +
+                    "</p>";
         }
-
-        if (!currentPack->extraData.donate.isEmpty()) {
-            text += "<br><br>" + tr("Donate information: ");
-            auto donateToStr = [](ModPlatform::DonationData& donate) -> QString {
-                return QString("<a href=\"%1\">%2</a>").arg(donate.url, donate.platform);
-            };
-            QStringList donates;
-            for (auto& donate : currentPack->extraData.donate) {
-                donates.append(donateToStr(donate));
-            }
-            text += donates.join(", ");
-        }
-
-        if (!currentPack->extraData.issuesUrl.isEmpty() || !currentPack->extraData.sourceUrl.isEmpty() ||
-            !currentPack->extraData.wikiUrl.isEmpty() || !currentPack->extraData.discordUrl.isEmpty()) {
-            text += "<br><br>" + tr("External links:") + "<br>";
-        }
-
-        if (!currentPack->extraData.issuesUrl.isEmpty()) {
-            text += "- " + tr("Issues: <a href=%1>%1</a>").arg(currentPack->extraData.issuesUrl) + "<br>";
-        }
-        if (!currentPack->extraData.wikiUrl.isEmpty()) {
-            text += "- " + tr("Wiki: <a href=%1>%1</a>").arg(currentPack->extraData.wikiUrl) + "<br>";
-        }
-        if (!currentPack->extraData.sourceUrl.isEmpty()) {
-            text += "- " + tr("Source code: <a href=%1>%1</a>").arg(currentPack->extraData.sourceUrl) + "<br>";
-        }
-        if (!currentPack->extraData.discordUrl.isEmpty()) {
-            text += "- " + tr("Discord: <a href=%1>%1</a>").arg(currentPack->extraData.discordUrl) + "<br>";
+        addLink(currentPack->extraData.issuesUrl, tr("Issues"));
+        addLink(currentPack->extraData.wikiUrl, tr("Wiki"));
+        addLink(currentPack->extraData.sourceUrl, tr("Source code"));
+        addLink(currentPack->extraData.discordUrl, "Discord");
+        for (const auto& donate : currentPack->extraData.donate) {
+            addLink(donate.url, tr("Support on %1").arg(donate.platform));
         }
     }
-
+    if (!links.isEmpty()) {
+        text += "<p>" + links.join(" &nbsp;·&nbsp; ") + "</p>";
+    }
     text += "<hr>";
 
     m_ui->packDescription->setHtml(StringUtils::htmlListPatch(
@@ -312,28 +329,58 @@ void ResourcePage::updateUi(const QModelIndex& index)
 
 void ResourcePage::updateSelectionButton()
 {
+    auto* button = m_ui->resourceSelectionButton;
     if (!isOpened || m_selectedVersionIndex < 0) {
-        m_ui->resourceSelectionButton->setEnabled(false);
-        m_ui->resourceSelectionButton->setText(tr("Cannot select invalid version :("));
+        button->setEnabled(false);
+        button->setText(tr("No compatible version"));
+        setSelectionButtonRole(false);
         return;
     }
 
-    m_ui->resourceSelectionButton->setEnabled(true);
+    button->setEnabled(true);
     if (auto currentPack = getCurrentPack(); currentPack) {
         if (currentPack->versionsLoaded && currentPack->versions.empty()) {
-            m_ui->resourceSelectionButton->setEnabled(false);
-            m_ui->resourceSelectionButton->setText(tr("Cannot select invalid version :("));
-            qWarning() << tr("No version available for the selected pack");
+            button->setEnabled(false);
+            button->setText(tr("No compatible version"));
+            setSelectionButtonRole(false);
+            qWarning() << "No version available for the selected pack";
         } else if (!currentPack->isVersionSelected(m_selectedVersionIndex)) {
-            m_ui->resourceSelectionButton->setText(tr("Select %1 for download").arg(resourceString()));
+            button->setText(tr("Add"));
+            button->setIcon(NovaIcons::icon("plus", NovaIcons::Tint::AccentText));
+            setSelectionButtonRole(true);
         } else {
-            m_ui->resourceSelectionButton->setText(tr("Deselect %1 for download").arg(resourceString()));
+            button->setText(tr("Remove"));
+            button->setIcon(NovaIcons::icon("close"));
+            setSelectionButtonRole(false);
         }
     } else {
         qWarning() << "Tried to update the selected button but there is not a pack selected";
-        m_ui->resourceSelectionButton->setEnabled(false);
-        m_ui->resourceSelectionButton->setText(tr("Cannot select invalid version :("));
+        button->setEnabled(false);
+        button->setText(tr("No compatible version"));
+        setSelectionButtonRole(false);
     }
+}
+
+void ResourcePage::setSelectionButtonRole(bool primary)
+{
+    auto* button = m_ui->resourceSelectionButton;
+    if (!primary) {
+        button->setIcon({});
+    }
+    const char* role = primary ? "primary" : "";
+    if (button->property("novaRole").toString() != role) {
+        button->setProperty("novaRole", role);
+        button->style()->unpolish(button);
+        button->style()->polish(button);
+    }
+}
+
+void ResourcePage::showEmptyDetails()
+{
+    m_ui->detailsHeader->hide();
+    m_ui->versionRow->hide();
+    // the placeholder text shows up in the empty description
+    m_ui->packDescription->clear();
 }
 
 void ResourcePage::refreshVersionComboBox()
@@ -428,7 +475,7 @@ void ResourcePage::versionListUpdated(const QModelIndex& index)
         }
         if (m_ui->versionSelectionBox->count() == 0) {
             m_ui->versionSelectionBox->addItem(tr("No valid version found."), QVariant(-1));
-            m_ui->resourceSelectionButton->setText(tr("Cannot select invalid version :("));
+            m_ui->resourceSelectionButton->setText(tr("No compatible version"));
         }
 
         m_selectedVersionIndex = m_ui->versionSelectionBox->currentData().toInt();
@@ -448,6 +495,7 @@ void ResourcePage::versionListUpdated(const QModelIndex& index)
 void ResourcePage::onSelectionChanged(QModelIndex curr, [[maybe_unused]] QModelIndex prev)
 {
     if (!curr.isValid()) {
+        showEmptyDetails();
         return;
     }
 
@@ -457,6 +505,7 @@ void ResourcePage::onSelectionChanged(QModelIndex curr, [[maybe_unused]] QModelI
     if (!currentPack || !currentPack->versionsLoaded) {
         m_ui->resourceSelectionButton->setText(tr("Loading versions..."));
         m_ui->resourceSelectionButton->setEnabled(false);
+        setSelectionButtonRole(false);
 
         requestLoad = true;
     } else {
@@ -692,6 +741,9 @@ void ResourcePage::openProject(const QVariant& projectID)
     }
     m_ui->packView->hide();
     m_ui->resourceSelectionButton->hide();
+    // changing a version needs the versions, they are in the details
+    m_ui->detailsButton->hide();
+    m_ui->detailsPanel->show();
     m_doNotJumpToMod = true;
 
     auto* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);

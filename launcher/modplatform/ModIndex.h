@@ -302,6 +302,8 @@ struct IndexedPack {
     QString logoUrl;
     QString websiteUrl;
     SideType side = SideType::NoSide;
+    /// -1 when the platform did not say
+    qint64 downloadCount = -1;
 
     bool versionsLoaded = false;
     QList<IndexedVersion> versions;

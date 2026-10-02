@@ -104,7 +104,7 @@ auto ResourceModel::data(const QModelIndex& index, int role) const -> QVariant
             return {};
         }
         case Qt::SizeHintRole:
-            return QSize(0, 58);
+            return QSize(0, 76);
         case Qt::UserRole: {
             QVariant v;
             v.setValue(pack);
@@ -115,6 +115,15 @@ auto ResourceModel::data(const QModelIndex& index, int role) const -> QVariant
             return pack->name;
         case UserDataTypes::DESCRIPTION:
             return pack->description;
+        case UserDataTypes::AUTHOR: {
+            QStringList authors;
+            for (const auto& author : pack->authors) {
+                authors << author.name;
+            }
+            return authors.join(", ");
+        }
+        case UserDataTypes::DOWNLOADS:
+            return pack->downloadCount >= 0 ? QVariant(pack->downloadCount) : QVariant();
         case Qt::CheckStateRole:
             return pack->isAnyVersionSelected() ? Qt::Checked : Qt::Unchecked;
         case UserDataTypes::INSTALLED:

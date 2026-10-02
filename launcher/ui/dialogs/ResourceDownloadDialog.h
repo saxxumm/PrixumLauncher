@@ -40,6 +40,9 @@ class ResourcePackFolderModel;
 class TexturePackFolderModel;
 class ShaderPackFolderModel;
 
+class QLabel;
+class QPushButton;
+
 namespace ResourceDownload {
 
 class ResourcePage;
@@ -133,6 +136,16 @@ class ResourceDownloadDialog : public QDialog, public BasePageProvider {
     QString m_resourcesString;
     QString m_geometrySaveKey;
     QList<BasePage*> m_pages;
+
+   private:
+    /// title, the instance it downloads into and a button per platform, in place of the page list
+    void createHeader();
+    /// checks the button of the shown page, the container switches pages only after telling about it
+    void updateSourceButtons(BasePage* current);
+
+    QLabel* m_title = nullptr;
+    QLabel* m_summary = nullptr;
+    QList<QPushButton*> m_sourceButtons;
 };
 
 }  // namespace ResourceDownload

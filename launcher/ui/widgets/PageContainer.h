@@ -91,6 +91,8 @@ class PageContainer : public QWidget, public BasePageContainer {
     void changeEvent(QEvent*) override;
 
     void hidePageList() { (m_sidebar ? m_sidebar : m_pageList)->hide(); }
+    /// for containers that show the page names somewhere else
+    void hidePageHeader();
 
     /// puts a widget above the page list, the container takes ownership
     void setSidebarHeader(QWidget* header);

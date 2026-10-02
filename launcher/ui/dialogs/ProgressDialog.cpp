@@ -39,6 +39,7 @@
 
 #include <QDebug>
 #include <QKeyEvent>
+#include <QToolButton>
 #include <limits>
 
 #include "tasks/Task.h"
@@ -59,10 +60,27 @@ std::tuple<int, int> map_int_zero_max(T current, T range_max, T range_min)
     return { mapped_current, int_max };
 }
 
+namespace {
+// whether the list of single downloads is expanded, remembered while the launcher runs
+bool s_detailsExpanded = true;
+}  // namespace
+
 ProgressDialog::ProgressDialog(QWidget* parent) : QDialog(parent), ui(new Ui::ProgressDialog)
 {
     ui->setupUi(this);
     ui->taskProgressScrollArea->setHidden(true);
+
+    m_detailsButton = new QToolButton(this);
+    m_detailsButton->setCheckable(true);
+    m_detailsButton->setChecked(s_detailsExpanded);
+    m_detailsButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    m_detailsButton->setFocusPolicy(Qt::ClickFocus);
+    m_detailsButton->hide();
+    ui->verticalLayout->insertWidget(ui->verticalLayout->indexOf(ui->taskProgressScrollArea), m_detailsButton, 0, Qt::AlignLeft);
+    connect(m_detailsButton, &QToolButton::toggled, this, [this](bool expanded) {
+        s_detailsExpanded = expanded;
+        updateDetails();
+    });
     this->setWindowFlags(this->windowFlags() & ~Qt::WindowContextHelpButtonHint);
     setAttribute(Qt::WidgetAttribute::WA_QuitOnClose, true);
     changeProgress(0, 100);
@@ -104,6 +122,8 @@ void ProgressDialog::updateSize(bool recenterParent)
     minHeight += ui->globalProgressBar->minimumSize().height() + ui->verticalLayout->spacing();
     if (!ui->taskProgressScrollArea->isHidden())
         minHeight += ui->taskProgressScrollArea->minimumSizeHint().height() + ui->verticalLayout->spacing();
+    if (!m_detailsButton->isHidden())
+        minHeight += m_detailsButton->sizeHint().height() + ui->verticalLayout->spacing();
     if (ui->skipButton->isVisible())
         minHeight += ui->skipButton->height() + ui->verticalLayout->spacing();
     minHeight = std::max(minHeight, 60);
@@ -155,8 +175,7 @@ int ProgressDialog::execWithTask(Task* task)
     this->m_taskConnections.push_back(connect(task, &Task::abortButtonTextChanged, ui->skipButton, &QPushButton::setText));
 
     m_is_multi_step = task->isMultiStep();
-    ui->taskProgressScrollArea->setHidden(!m_is_multi_step);
-    updateSize();
+    updateDetails();
 
     // It's a good idea to start the task after we entered the dialog's event loop :^)
     if (!task->isRunning()) {
@@ -223,26 +242,35 @@ void ProgressDialog::changeStatus([[maybe_unused]] const QString& status)
     updateSize();
 }
 
-void ProgressDialog::addTaskProgress(TaskStepProgress const& progress)
+void ProgressDialog::updateDetails()
+{
+    const bool expanded = m_detailsButton->isChecked();
+    m_detailsButton->setText(QString::fromUtf8(expanded ? "▾ " : "▸ ") + tr("Details"));
+    m_detailsButton->setToolTip(expanded ? tr("Hide the single downloads") : tr("Show the single downloads"));
+    m_detailsButton->setVisible(m_is_multi_step);
+    ui->taskProgressScrollArea->setHidden(!m_is_multi_step || !expanded);
+    updateSize();
+}
+
+void ProgressDialog::addTaskProgress(const TaskStepProgress& progress)
 {
     SubTaskProgressBar* task_bar = new SubTaskProgressBar(this);
     taskProgress.insert(progress.uid, task_bar);
     ui->taskProgressLayout->addWidget(task_bar);
 }
 
-void ProgressDialog::changeStepProgress(TaskStepProgress const& task_progress)
+void ProgressDialog::changeStepProgress(const TaskStepProgress& task_progress)
 {
     m_is_multi_step = true;
-    if (ui->taskProgressScrollArea->isHidden()) {
-        ui->taskProgressScrollArea->setHidden(false);
-        updateSize();
+    if (m_detailsButton->isHidden()) {
+        updateDetails();
     }
 
     if (!taskProgress.contains(task_progress.uid))
         addTaskProgress(task_progress);
     auto task_bar = taskProgress.value(task_progress.uid);
 
-    auto const [mapped_current, mapped_total] = map_int_zero_max<qint64>(task_progress.current, task_progress.total, 0);
+    const auto [mapped_current, mapped_total] = map_int_zero_max<qint64>(task_progress.current, task_progress.total, 0);
     if (task_progress.total <= 0) {
         task_bar->setRange(0, 0);
     } else {

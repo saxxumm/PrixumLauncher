@@ -2,12 +2,63 @@
 
 #include <QApplication>
 
-#include <QDebug>
 #include <QIcon>
+#include <QLocale>
+#include <QMouseEvent>
 #include <QPainter>
-#include "Common.h"
+#include <QPainterPath>
+#include <QTextLayout>
+
+namespace {
+constexpr int s_padding = 12;
+constexpr int s_toggleHeight = 28;
+}  // namespace
 
 ProjectItemDelegate::ProjectItemDelegate(QWidget* parent) : QStyledItemDelegate(parent) {}
+
+QString ProjectItemDelegate::downloadsText(qint64 downloads)
+{
+    const QLocale locale;
+    QString count;
+    if (downloads >= 1'000'000) {
+        //: download count in millions, like "12.3M"
+        count = tr("%1M").arg(locale.toString(downloads / 1'000'000.0, 'f', downloads >= 10'000'000 ? 0 : 1));
+    } else if (downloads >= 1'000) {
+        //: download count in thousands, like "450K"
+        count = tr("%1K").arg(locale.toString(downloads / 1'000.0, 'f', downloads >= 10'000 ? 0 : 1));
+    } else {
+        count = locale.toString(downloads);
+    }
+    return QString::fromUtf8("↓ ") + count;
+}
+
+QString ProjectItemDelegate::toggleText(const QModelIndex& index, Qt::CheckState state) const
+{
+    if (state == Qt::Checked) {
+        return QString::fromUtf8("✓ ") + tr("Added");
+    }
+    if (index.data(UserDataTypes::INSTALLED).toBool()) {
+        return tr("Installed");
+    }
+    return "+ " + tr("Add");
+}
+
+QRect ProjectItemDelegate::toggleRect(const QStyleOptionViewItem& opt, const QModelIndex& index) const
+{
+    if (!(opt.features & QStyleOptionViewItem::HasCheckIndicator)) {
+        return {};
+    }
+    // as wide as the longest of its texts, so it does not jump when clicked
+    QFont font = opt.font;
+    font.setBold(true);
+    const QFontMetrics metrics(font);
+    int width = 0;
+    for (auto state : { Qt::Checked, Qt::Unchecked }) {
+        width = std::max(width, metrics.horizontalAdvance(toggleText(index, state)));
+    }
+    width += 28;
+    return { opt.rect.right() - s_padding - width, opt.rect.center().y() - s_toggleHeight / 2, width, s_toggleHeight };
+}
 
 void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
@@ -16,135 +67,119 @@ void ProjectItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& o
     QStyleOptionViewItem opt(option);
     initStyleOption(&opt, index);
 
-    auto isInstalled = index.data(UserDataTypes::INSTALLED).toBool();
-    auto isChecked = opt.checkState == Qt::Checked;
-    auto isSelected = option.state & QStyle::State_Selected;
-
     const QStyle* style = opt.widget == nullptr ? QApplication::style() : opt.widget->style();
+    const bool isChecked = opt.checkState == Qt::Checked;
+    const bool isInstalled = index.data(UserDataTypes::INSTALLED).toBool();
 
-    auto rect = opt.rect;
+    // background, hover and selection come from the style, the checkbox is replaced by our own button
+    QStyleOptionViewItem background(opt);
+    background.features &= ~QStyleOptionViewItem::HasCheckIndicator;
+    background.text.clear();
+    background.icon = QIcon();
+    style->drawPrimitive(QStyle::PE_PanelItemViewItem, &background, painter, opt.widget);
 
-    bool windows = style->objectName().startsWith("windows");
+    painter->setRenderHint(QPainter::Antialiasing);
+    const auto group = (opt.state & QStyle::State_Enabled) ? QPalette::Normal : QPalette::Disabled;
+    const QColor text = opt.palette.color(group, QPalette::Text);
+    const QColor muted = opt.palette.color(group, QPalette::PlaceholderText);
 
-    if (!windows)
-        style->drawPrimitive(QStyle::PE_PanelItemViewItem, &opt, painter, opt.widget);
+    QRect content = opt.rect.adjusted(s_padding, 0, -s_padding, 0);
 
-    if (isSelected) {
-        if (windows)
-            painter->fillRect(rect, opt.palette.highlight());
-
-        painter->setPen(opt.palette.highlightedText().color());
-    }
-
-    if (opt.features & QStyleOptionViewItem::HasCheckIndicator) {
-        QStyleOptionViewItem checkboxOpt = makeCheckboxStyleOption(opt, style);
-        style->drawPrimitive(QStyle::PE_IndicatorItemViewItemCheck, &checkboxOpt, painter, opt.widget);
-
-        rect.setX(checkboxOpt.rect.right());
-    }
-
-    if (!isSelected && !isChecked && isInstalled) {
-        painter->setOpacity(0.4);  // Fade out the entire item
-    }
-    // The default icon size will be a square (and height is usually the lower value).
-    auto icon_width = rect.height();
-    int icon_x_margin = (rect.height() - icon_width) / 2;
-
-    if (!opt.icon.isNull()) {  // Icon painting
-        auto icon_height = 0;
-        {
-            auto icon_size = opt.decorationSize;
-            icon_width = icon_size.width();
-            icon_height = icon_size.height();
-
-            icon_x_margin = (rect.height() - icon_height) / 2;  // use same margins for consistency
-        }
-
-        // Centralize icon with a margin to separate from the other elements
-        int x = rect.x() + icon_x_margin;
-        int y = rect.y() + icon_x_margin;
-
-        if (opt.features & QStyleOptionViewItem::HasCheckIndicator) {
-            rect.translate(icon_x_margin / 2, 0);
-        }
-
-        // Prevent 'scaling null pixmap' warnings
-        if (icon_width > 0 && icon_height > 0) {
-            opt.icon.paint(painter, x, y, icon_width, icon_height);
-        }
-    }
-
-    // Change the rect so that funther painting is easier
-    auto remaining_width = rect.width() - icon_width - 2 * icon_x_margin;
-    rect.setRect(rect.x() + icon_width + 2 * icon_x_margin, rect.y(), remaining_width, rect.height());
-
-    int title_height = 0;
-
-    {  // Title painting
-        auto title = index.data(UserDataTypes::TITLE).toString();
-
-        painter->save();
-
-        auto font = opt.font;
-        if (isChecked) {
-            font.setBold(true);
-        }
-        if (isInstalled) {
-            title = tr("%1 [installed]").arg(title);
-        }
-
-        font.setPointSize(font.pointSize() + 2);
+    // the pick button on the right
+    if (const QRect toggle = toggleRect(opt, index); toggle.isValid()) {
+        QFont font = opt.font;
+        font.setBold(true);
         painter->setFont(font);
-
-        title_height = QFontMetrics(font).height();
-
-        // On the top, aligned to the left after the icon
-        painter->drawText(rect.x(), rect.y() + title_height, title);
-
-        painter->restore();
+        const QColor accent = opt.palette.color(group, QPalette::Highlight);
+        if (isChecked) {
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(accent);
+        } else {
+            painter->setPen(QPen(opt.palette.color(group, QPalette::Mid), 1));
+            painter->setBrush(opt.palette.color(group, QPalette::Button));
+        }
+        painter->drawRoundedRect(QRectF(toggle).adjusted(0.5, 0.5, -0.5, -0.5), s_toggleHeight / 2.0, s_toggleHeight / 2.0);
+        painter->setPen(isChecked ? opt.palette.color(group, QPalette::HighlightedText) : (isInstalled ? muted : text));
+        painter->drawText(toggle, Qt::AlignCenter, toggleText(index, opt.checkState));
+        content.setRight(toggle.left() - s_padding);
     }
 
-    {  // Description painting
-        auto description = index.data(UserDataTypes::DESCRIPTION).toString().simplified();
+    // the icon, rounded like the cards around it
+    int iconSize = std::min(opt.decorationSize.height(), opt.rect.height() - 16);
+    if (!opt.icon.isNull() && iconSize > 0) {
+        const QRect iconRect(content.left(), opt.rect.center().y() - iconSize / 2, iconSize, iconSize);
+        QPainterPath clip;
+        clip.addRoundedRect(iconRect, 8, 8);
+        painter->save();
+        painter->setClipPath(clip);
+        opt.icon.paint(painter, iconRect);
+        painter->restore();
+        content.setLeft(iconRect.right() + s_padding);
+    }
 
-        QTextLayout text_layout(description, opt.font);
+    // title, with the authors and downloads in muted text after it
+    QFont titleFont = opt.font;
+    titleFont.setBold(true);
+    if (titleFont.pointSizeF() > 0) {
+        titleFont.setPointSizeF(titleFont.pointSizeF() + 1);
+    }
+    const QFontMetrics titleMetrics(titleFont);
+    const QFontMetrics metrics(opt.font);
 
-        qreal height = 0;
-        auto cut_text = viewItemTextLayout(text_layout, remaining_width, height);
+    QStringList meta;
+    if (const auto author = index.data(UserDataTypes::AUTHOR).toString(); !author.isEmpty()) {
+        meta << author;
+    }
+    if (const auto downloads = index.data(UserDataTypes::DOWNLOADS); downloads.isValid() && downloads.toLongLong() >= 0) {
+        meta << downloadsText(downloads.toLongLong());
+    }
 
-        // Get first line unconditionally
-        description = cut_text.first().second;
-        auto num_lines = 1;
+    const QString description = index.data(UserDataTypes::DESCRIPTION).toString().simplified();
+    const int descriptionLines =
+        description.isEmpty() ? 0 : (opt.rect.height() >= titleMetrics.height() + metrics.height() * 2 + 14 ? 2 : 1);
+    const int blockHeight = titleMetrics.height() + 2 + descriptionLines * metrics.height();
+    int y = opt.rect.center().y() - blockHeight / 2;
 
-        // Get second line, elided if needed
-        if (cut_text.size() > 1) {
-            // 2.5x so because there should be some margin left from the 2x so things don't get too squishy.
-            if (rect.height() - title_height <= 2.5 * opt.fontMetrics.height()) {
-                // If there's not enough space, show only a single line, elided.
-                description = opt.fontMetrics.elidedText(description, opt.textElideMode, cut_text.at(0).first);
-            } else {
-                if (cut_text.size() > 2) {
-                    description += opt.fontMetrics.elidedText(cut_text.at(1).second, opt.textElideMode, cut_text.at(1).first);
-                } else {
-                    description += cut_text.at(1).second;
-                }
-                num_lines += 1;
+    const QString title = index.data(UserDataTypes::TITLE).toString();
+    const QString elidedTitle = titleMetrics.elidedText(title, Qt::ElideRight, content.width());
+    painter->setFont(titleFont);
+    painter->setPen(text);
+    painter->drawText(QRect(content.left(), y, content.width(), titleMetrics.height()), Qt::AlignLeft | Qt::AlignVCenter, elidedTitle);
+    const int metaLeft = content.left() + titleMetrics.horizontalAdvance(elidedTitle) + 10;
+    if (!meta.isEmpty() && metaLeft < content.right() - 40) {
+        painter->setFont(opt.font);
+        painter->setPen(muted);
+        const QRect metaRect(metaLeft, y, content.right() - metaLeft, titleMetrics.height());
+        painter->drawText(metaRect, Qt::AlignLeft | Qt::AlignVCenter,
+                          metrics.elidedText(meta.join(" · "), Qt::ElideRight, metaRect.width()));
+    }
+    y += titleMetrics.height() + 2;
+
+    // up to two lines of description, the last one elided
+    if (descriptionLines > 0) {
+        painter->setFont(opt.font);
+        painter->setPen(muted);
+        QTextLayout layout(description, opt.font);
+        layout.beginLayout();
+        int shown = 0;
+        int start = 0;
+        while (shown < descriptionLines) {
+            QTextLine line = layout.createLine();
+            if (!line.isValid()) {
+                break;
             }
+            line.setLineWidth(content.width());
+            start = line.textStart();
+            QString lineText = description.mid(start, line.textLength());
+            if (shown == descriptionLines - 1) {
+                lineText = metrics.elidedText(description.mid(start), Qt::ElideRight, content.width());
+            }
+            painter->drawText(QRect(content.left(), y, content.width(), metrics.height()), Qt::AlignLeft | Qt::AlignVCenter,
+                              lineText.trimmed());
+            y += metrics.height();
+            shown++;
         }
-
-        int description_x = rect.x();
-
-        // Have the y-value be set based on the number of lines in the description, to centralize the
-        // description text with the space between the base and the title.
-        int description_y = rect.y() + title_height + (rect.height() - title_height) / 2;
-        if (num_lines == 1)
-            description_y -= opt.fontMetrics.height() / 2;
-        else
-            description_y -= opt.fontMetrics.height();
-
-        // On the bottom, aligned to the left after the icon, and featuring at most two lines of text (with some margin space to spare)
-        painter->drawText(description_x, description_y, remaining_width, num_lines * opt.fontMetrics.height(), Qt::TextWordWrap,
-                          description);
+        layout.endLayout();
     }
 
     painter->restore();
@@ -159,7 +194,7 @@ bool ProjectItemDelegate::editorEvent(QEvent* event,
           event->type() == QEvent::MouseButtonDblClick))
         return false;
 
-    auto mouseEvent = (QMouseEvent*)event;
+    auto* mouseEvent = static_cast<QMouseEvent*>(event);
 
     if (mouseEvent->button() != Qt::LeftButton)
         return false;
@@ -167,11 +202,7 @@ bool ProjectItemDelegate::editorEvent(QEvent* event,
     QStyleOptionViewItem opt(option);
     initStyleOption(&opt, index);
 
-    const QStyle* style = opt.widget == nullptr ? QApplication::style() : opt.widget->style();
-
-    const QStyleOptionViewItem checkboxOpt = makeCheckboxStyleOption(opt, style);
-
-    if (!checkboxOpt.rect.contains(mouseEvent->pos().x(), mouseEvent->pos().y()))
+    if (!toggleRect(opt, index).contains(mouseEvent->position().toPoint()))
         return false;
 
     // swallow other events
@@ -181,24 +212,4 @@ bool ProjectItemDelegate::editorEvent(QEvent* event,
 
     emit checkboxClicked(index);
     return true;
-}
-
-QStyleOptionViewItem ProjectItemDelegate::makeCheckboxStyleOption(const QStyleOptionViewItem& opt, const QStyle* style) const
-{
-    QStyleOptionViewItem checkboxOpt = opt;
-
-    checkboxOpt.state &= ~QStyle::State_HasFocus;
-
-    if (checkboxOpt.checkState == Qt::Checked)
-        checkboxOpt.state |= QStyle::State_On;
-    else
-        checkboxOpt.state |= QStyle::State_Off;
-
-    QRect checkboxRect = style->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &checkboxOpt, opt.widget);
-    // 5px is the typical top margin for image
-    // we don't want the checkboxes to be all over the place :)
-    checkboxOpt.rect = QRect(opt.rect.x() + 5, opt.rect.y() + (opt.rect.height() / 2 - checkboxRect.height() / 2), checkboxRect.width(),
-                             checkboxRect.height());
-
-    return checkboxOpt;
 }

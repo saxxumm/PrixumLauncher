@@ -1238,3 +1238,69 @@ QFrame#shaderLoaderNotice {
     border: 1px solid @accent;
     border-radius: @radius;
 }
+
+/* ---------- download dialog for mods and packs ---------- */
+
+QLabel#downloadDialogTitle {
+    font-size: @titleSize;
+    font-weight: 700;
+}
+
+QLabel#packTitle {
+    font-size: @subtitleSize;
+    font-weight: 700;
+}
+
+QListView#packView {
+    background: transparent;
+    border: none;
+}
+
+QListView#packView::item {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+    margin: 3px 2px;
+}
+
+QListView#packView::item:hover {
+    background: @hover;
+    border-color: @borderStrong;
+}
+
+QListView#packView::item:selected {
+    background: @accentSoft;
+    border-color: @accent;
+}
+
+ModFilterWidget {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius;
+}
+
+QFrame#detailsPanel QTextBrowser {
+    background: transparent;
+    border: none;
+    padding: 0px;
+}
+
+/* the main button of a dialog, also while another button has focus */
+QPushButton[novaRole="accent"] {
+    background: @accent;
+    color: @accentText;
+    border-color: @accent;
+    font-weight: 600;
+}
+
+QPushButton[novaRole="accent"]:hover {
+    background: @accentHover;
+    border-color: @accentHover;
+}
+
+QPushButton[novaRole="accent"]:disabled {
+    background: @surface;
+    color: @textDisabled;
+    border-color: @border;
+    font-weight: 400;
+}

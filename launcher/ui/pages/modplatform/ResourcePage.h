@@ -134,6 +134,14 @@ class ResourcePage : public QWidget, public BasePage {
     void refreshVersionComboBox();
     void restoreSelectedVersion(const ModPlatform::IndexedPack::Ptr& currentPack);
 
+   private:
+    /// the details panel while nothing is picked in the list
+    void showEmptyDetails();
+    /// the add/remove button is accent colored only while it adds
+    void setSelectionButtonRole(bool primary);
+    /// shows or collapses the panel with the description and versions, for all download dialogs
+    void setDetailsVisible(bool visible);
+
    public:
     BaseInstance& m_baseInstance;
 

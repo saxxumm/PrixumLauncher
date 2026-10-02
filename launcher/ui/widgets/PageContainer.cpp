@@ -219,6 +219,15 @@ void PageContainer::addButtons(QLayout* buttons)
     m_layout->addLayout(buttons, 2, 1, 1, 2);
 }
 
+void PageContainer::hidePageHeader()
+{
+    m_header->hide();
+    // the margins around the title would still leave a gap
+    if (auto* item = m_layout->itemAtPosition(0, 1); item && item->layout()) {
+        item->layout()->setContentsMargins(0, 0, 0, 0);
+    }
+}
+
 void PageContainer::setSidebarHeader(QWidget* header)
 {
     // one frame holds both, so the sidebar border runs along the header too

@@ -15,6 +15,9 @@ Result<> FlameMod::loadIndexedPack(ModPlatform::IndexedPack& pack, const QJsonOb
     TRY_INTO(pack.slug, Json::requireString(obj, "slug"))
     pack.websiteUrl = obj["links"].toObject()["websiteUrl"].toString("");
     pack.description = obj["summary"].toString("");
+    if (const auto downloads = obj.value("downloadCount"); downloads.isDouble()) {
+        pack.downloadCount = static_cast<qint64>(downloads.toDouble());
+    }
 
     QJsonObject logo = obj["logo"].toObject();
     pack.logoName = logo["title"].toString();

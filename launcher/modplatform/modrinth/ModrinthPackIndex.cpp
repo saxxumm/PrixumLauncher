@@ -56,6 +56,9 @@ Result<> Modrinth::loadIndexedPack(ModPlatform::IndexedPack& pack, const QJsonOb
     }
 
     pack.description = obj["description"].toString("");
+    if (const auto downloads = obj.value("downloads"); downloads.isDouble()) {
+        pack.downloadCount = static_cast<qint64>(downloads.toDouble());
+    }
 
     pack.logoUrl = obj["icon_url"].toString("");
     pack.logoName = QString("%1.%2").arg(obj["slug"].toString(), QFileInfo(QUrl(pack.logoUrl).fileName()).suffix());

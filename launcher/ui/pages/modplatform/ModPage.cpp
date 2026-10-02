@@ -113,6 +113,9 @@ void ModPage::setFilterWidget(ModFilterWidget* widget)
     }
 
     m_filterWidget.reset(widget);
+    // drawn as a card next to the results
+    m_filterWidget->setAttribute(Qt::WA_StyledBackground);
+    m_ui->resourceFilterButton->setChecked(!m_filterWidget->isHidden());
 
     m_filter = m_filterWidget->getFilter();
 
@@ -125,6 +128,7 @@ void ModPage::setFilterWidget(ModFilterWidget* widget)
 void ModPage::filterMods()
 {
     m_filterWidget->setHidden(!m_filterWidget->isHidden());
+    m_ui->resourceFilterButton->setChecked(!m_filterWidget->isHidden());
 }
 
 void ModPage::triggerSearch()

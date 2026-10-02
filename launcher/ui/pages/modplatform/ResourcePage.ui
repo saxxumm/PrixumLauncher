@@ -6,40 +6,76 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>837</width>
-    <height>685</height>
+    <width>1100</width>
+    <height>640</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>10</number>
+   </property>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>8</number>
+     </property>
      <item>
-      <widget class="QPushButton" name="resourceFilterButton">
-       <property name="text">
-        <string>Filter options</string>
+      <widget class="QLineEdit" name="searchEdit">
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="searchEdit"/>
+      <widget class="QComboBox" name="sortByBox">
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::SizeAdjustPolicy::AdjustToContents</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="resourceFilterButton">
+       <property name="text">
+        <string>Filters</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="detailsButton">
+       <property name="text">
+        <string>Details</string>
+       </property>
+       <property name="toolTip">
+        <string>Show or hide the description and versions of the picked project</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
+     <property name="handleWidth">
+      <number>10</number>
+     </property>
      <widget class="QWidget" name="filterWidget" native="true"/>
      <widget class="QListView" name="packView">
       <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-      <property name="alternatingRowColors">
-       <bool>true</bool>
+       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
       </property>
       <property name="iconSize">
        <size>
@@ -48,41 +84,155 @@
        </size>
       </property>
       <property name="verticalScrollMode">
-       <enum>QAbstractItemView::ScrollPerPixel</enum>
+       <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
+      </property>
+      <property name="spacing">
+       <number>2</number>
       </property>
      </widget>
-     <widget class="ProjectDescriptionPage" name="packDescription">
-      <property name="openExternalLinks">
-       <bool>false</bool>
+     <widget class="QFrame" name="detailsPanel">
+      <property name="novaRole" stdset="0">
+       <string notr="true">card</string>
       </property>
-      <property name="openLinks">
-       <bool>false</bool>
-      </property>
+      <layout class="QVBoxLayout" name="detailsLayout">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <property name="leftMargin">
+        <number>14</number>
+       </property>
+       <property name="topMargin">
+        <number>14</number>
+       </property>
+       <property name="rightMargin">
+        <number>14</number>
+       </property>
+       <property name="bottomMargin">
+        <number>8</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="detailsHeader" native="true">
+         <layout class="QHBoxLayout" name="detailsHeaderLayout">
+          <property name="spacing">
+           <number>12</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item alignment="Qt::AlignmentFlag::AlignTop">
+           <widget class="QLabel" name="packIcon">
+            <property name="minimumSize">
+             <size>
+              <width>56</width>
+              <height>56</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>56</width>
+              <height>56</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="detailsTitleLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="packTitle">
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="openExternalLinks">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="packMeta">
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="novaRole" stdset="0">
+               <string notr="true">muted</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="versionRow" native="true">
+         <layout class="QHBoxLayout" name="versionRowLayout">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QComboBox" name="versionSelectionBox">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumContentsLength">
+             <number>12</number>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QComboBox::SizeAdjustPolicy::AdjustToMinimumContentsLengthWithIcon</enum>
+            </property>
+            <property name="toolTip">
+             <string>Version selected:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="resourceSelectionButton"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="ProjectDescriptionPage" name="packDescription">
+         <property name="openExternalLinks">
+          <bool>false</bool>
+         </property>
+         <property name="openLinks">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,0">
-     <item row="0" column="2">
-      <widget class="QComboBox" name="versionSelectionBox"/>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Version selected:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QComboBox" name="sortByBox"/>
-     </item>
-     <item row="1" column="2">
-      <widget class="QPushButton" name="resourceSelectionButton"/>
-     </item>
-    </layout>
+    <layout class="QGridLayout" name="gridLayout_4"/>
    </item>
   </layout>
  </widget>
@@ -94,10 +244,13 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>packView</tabstop>
-  <tabstop>packDescription</tabstop>
+  <tabstop>searchEdit</tabstop>
   <tabstop>sortByBox</tabstop>
+  <tabstop>resourceFilterButton</tabstop>
+  <tabstop>packView</tabstop>
   <tabstop>versionSelectionBox</tabstop>
+  <tabstop>resourceSelectionButton</tabstop>
+  <tabstop>packDescription</tabstop>
  </tabstops>
  <resources/>
  <connections/>

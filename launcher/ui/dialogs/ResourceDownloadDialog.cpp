@@ -48,7 +48,14 @@
 
 #include "modplatform/flame/FlameAPI.h"
 #include "modplatform/modrinth/ModrinthAPI.h"
+#include "ui/InstanceSummary.h"
 #include "ui/widgets/PageContainer.h"
+
+#include <QGuiApplication>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QScreen>
 
 namespace ResourceDownload {
 
@@ -69,7 +76,12 @@ ResourceDownloadDialog::ResourceDownloadDialog(QWidget* parent,
 {
     setObjectName(QStringLiteral("ResourceDownloadDialog"));
 
-    resize(static_cast<int>(std::max(0.5 * parent->width(), 400.0)), static_cast<int>(std::max(0.75 * parent->height(), 400.0)));
+    // three columns (filters, results, details) need room, a saved geometry replaces this
+    if (auto* screen = parent ? parent->screen() : QGuiApplication::primaryScreen()) {
+        const auto available = screen->availableSize();
+        setMinimumSize(QSize(900, 600).boundedTo(available * 0.95));
+        resize(QSize(1240, 820).boundedTo(available * 0.9));
+    }
 
     setWindowIcon(QIcon::fromTheme("new"));
 
@@ -83,8 +95,10 @@ ResourceDownloadDialog::ResourceDownloadDialog(QWidget* parent,
     okButton->setEnabled(false);
     okButton->setDefault(true);
     okButton->setAutoDefault(true);
-    okButton->setText(tr("Review and confirm"));
+    okButton->setText(tr("Download"));
     okButton->setShortcut(tr("Ctrl+Return"));
+    // stays accent colored even while focus sits on a button of a page
+    okButton->setProperty("novaRole", "accent");
 
     auto* cancelButton = m_buttons.button(QDialogButtonBox::Cancel);
     cancelButton->setDefault(false);
@@ -134,19 +148,73 @@ void ResourceDownloadDialog::reject()
 // won't work with subclasses if we put it in this ctor.
 void ResourceDownloadDialog::initializeContainer()
 {
-// small margins look ugly on macOS on modal windows
-#ifndef Q_OS_MACOS
-    layout()->setContentsMargins(0, 0, 0, 0);
-#endif
+    m_verticalLayout.setContentsMargins(16, 14, 16, 12);
+    m_verticalLayout.setSpacing(12);
+    createHeader();
 
     m_container = new PageContainer(this, {}, this);
     m_container->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Expanding);
     m_container->layout()->setContentsMargins(0, 0, 0, 0);
-    m_verticalLayout.addWidget(m_container);
+    m_container->hidePageList();
+    m_container->hidePageHeader();
+    m_verticalLayout.addWidget(m_container, 1);
 
-    m_container->addButtons(&m_buttons);
+    // what is picked so far on the left, the buttons on the right
+    auto* footer = new QHBoxLayout;
+    footer->setSpacing(12);
+    m_summary = new QLabel(this);
+    m_summary->setProperty("novaRole", "muted");
+    m_summary->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    footer->addWidget(m_summary, 1);
+    m_buttons.setContentsMargins(0, 0, 0, 0);
+    footer->addWidget(&m_buttons);
+    m_container->addButtons(footer);
 
     connect(m_container, &PageContainer::selectedPageChanged, this, &ResourceDownloadDialog::selectedPageChanged);
+    updateSourceButtons(m_container->selectedPage());
+    setButtonStatus();
+}
+
+void ResourceDownloadDialog::createHeader()
+{
+    auto* header = new QWidget(this);
+    auto* layout = new QHBoxLayout(header);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(8);
+
+    auto* titles = new QVBoxLayout;
+    titles->setSpacing(2);
+    m_title = new QLabel(dialogTitle(), header);
+    m_title->setObjectName("downloadDialogTitle");
+    titles->addWidget(m_title);
+    if (m_instance) {
+        auto* subtitle = new QLabel(tr("Into %1 · %2").arg(m_instance->name(), InstanceSummary::versionLine(m_instance)), header);
+        subtitle->setProperty("novaRole", "muted");
+        titles->addWidget(subtitle);
+    }
+    layout->addLayout(titles, 1);
+
+    // one button per platform instead of a sidebar with two entries
+    for (auto* page : m_pages) {
+        auto* button = new QPushButton(page->icon(), page->displayName(), header);
+        button->setCheckable(true);
+        button->setAutoExclusive(true);
+        button->setAutoDefault(false);
+        button->setProperty("novaRole", "choice");
+        button->setIconSize(QSize(20, 20));
+        connect(button, &QPushButton::clicked, this, [this, id = page->id()] { m_container->selectPage(id); });
+        layout->addWidget(button);
+        m_sourceButtons.append(button);
+        button->setVisible(m_pages.size() > 1);
+    }
+    m_verticalLayout.addWidget(header);
+}
+
+void ResourceDownloadDialog::updateSourceButtons(BasePage* current)
+{
+    for (int i = 0; i < m_sourceButtons.size() && i < m_pages.size(); i++) {
+        m_sourceButtons[i]->setChecked(m_pages[i] == current);
+    }
 }
 
 void ResourceDownloadDialog::connectButtons()
@@ -298,12 +366,29 @@ void ResourceDownloadDialog::removeResource(const QString& packName)
 
 void ResourceDownloadDialog::setButtonStatus()
 {
-    auto selected = false;
-    for (auto* page : m_container->getPages()) {
-        auto* res = static_cast<ResourcePage*>(page);
-        selected = selected || res->hasSelectedPacks();
+    QStringList names;
+    for (const auto& task : getTasks()) {
+        names << task->getName();
     }
-    m_buttons.button(QDialogButtonBox::Ok)->setEnabled(selected);
+    names.sort(Qt::CaseInsensitive);
+
+    auto* okButton = m_buttons.button(QDialogButtonBox::Ok);
+    okButton->setEnabled(!names.isEmpty());
+    okButton->setText(names.isEmpty() ? tr("Download") : tr("Download (%1)").arg(names.size()));
+    if (!m_summary) {
+        return;
+    }
+    if (names.isEmpty()) {
+        m_summary->setText(tr("Nothing picked yet. Everything you add here is downloaded together."));
+        m_summary->setToolTip({});
+        return;
+    }
+    // a few names, the full list is in the tooltip
+    constexpr int shown = 4;
+    const auto visible = names.mid(0, shown).join(", ");
+    m_summary->setText(names.size() > shown ? tr("Picked: %1 and %2 more").arg(visible).arg(names.size() - shown)
+                                            : tr("Picked: %1").arg(visible));
+    m_summary->setToolTip(names.join("\n"));
 }
 
 QList<ResourceDownloadDialog::DownloadTaskPtr> ResourceDownloadDialog::getTasks()
@@ -318,6 +403,7 @@ QList<ResourceDownloadDialog::DownloadTaskPtr> ResourceDownloadDialog::getTasks(
 
 void ResourceDownloadDialog::selectedPageChanged(BasePage* previous, BasePage* selected)
 {
+    updateSourceButtons(selected);
     // If previous is null (first selection), nothing to sync
     if (!previous) {
         return;
@@ -347,6 +433,11 @@ void ResourceDownloadDialog::setResourceMetadata(const std::shared_ptr<Metadata:
     }
 
     setWindowTitle(tr("Change %1 version").arg(meta->name));
+    m_title->setText(windowTitle());
+    for (auto* button : m_sourceButtons) {
+        button->hide();
+    }
+    m_summary->hide();
     m_container->hidePageList();
     m_buttons.hide();
     auto* page = selectedPage();
