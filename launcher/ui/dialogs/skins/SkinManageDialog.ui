@@ -181,6 +181,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QLabel" name="historyStatus">
+         <property name="novaRole" stdset="0">
+          <string notr="true">muted</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="headerSpacer">
          <property name="orientation">
           <enum>Qt::Orientation::Horizontal</enum>
@@ -197,7 +204,7 @@
         <widget class="QLineEdit" name="urlLine">
          <property name="minimumSize">
           <size>
-           <width>340</width>
+           <width>280</width>
            <height>0</height>
           </size>
          </property>
@@ -313,6 +320,23 @@
          </property>
          <property name="autoDefault">
           <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="historyCheck">
+         <property name="text">
+          <string>Skin history</string>
+         </property>
+         <property name="toolTip">
+          <string>Twice a day the launcher asks crafty.gg which skins this account wore before and adds the new ones to the saved skins.</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="historyRefresh">
+         <property name="toolTip">
+          <string>Load the skin history now</string>
          </property>
         </widget>
        </item>

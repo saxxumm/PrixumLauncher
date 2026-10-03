@@ -27,6 +27,7 @@
 #include "minecraft/skins/SkinList.h"
 #include "minecraft/skins/SkinModel.h"
 #include "minecraft/skins/SkinSource.h"
+#include "net/NetJob.h"
 #include "ui/dialogs/skins/SkinGrid.h"
 
 class SkinPreviewWidget;
@@ -74,6 +75,9 @@ class SkinManageDialog : public QDialog {
     void selectWhenListed(const QString& key);
     /// offers a skin link from the clipboard, NameMC links mostly
     void checkClipboard();
+    /// adds the skins the account wore before, from crafty.gg, at most twice a day unless forced
+    void loadSkinHistory(bool force);
+    void addHistory(const QByteArray& response);
 
    private:
     MinecraftAccountPtr m_acct;
@@ -91,4 +95,7 @@ class SkinManageDialog : public QDialog {
     QString m_dismissedClipboard;
     /// downloads run in a nested event loop, a second one must not start meanwhile
     bool m_importing = false;
+    NetJob::Ptr m_historyJob;
+    /// crafty.gg follows Mojang's players, so only Microsoft accounts have a history
+    bool m_historyAvailable = false;
 };

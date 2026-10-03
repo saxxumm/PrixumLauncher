@@ -7216,3 +7216,39 @@ msgstr "Сборка"
 msgctxt "AppearanceWidget"
 msgid "Nova (follows the theme colors)"
 msgstr "Nova (в цветах темы)"
+
+msgctxt "SkinManageDialog"
+msgid "Skin history"
+msgstr "История скинов"
+
+msgctxt "SkinManageDialog"
+msgid "Twice a day the launcher asks crafty.gg which skins this account wore before and adds the new ones to the saved skins."
+msgstr "Дважды в день лаунчер узнаёт на crafty.gg, какие скины этот аккаунт носил раньше, и добавляет новые в сохранённые."
+
+msgctxt "SkinManageDialog"
+msgid "Load the skin history now"
+msgstr "Загрузить историю скинов сейчас"
+
+msgctxt "SkinManageDialog"
+msgid "History checked %1"
+msgstr "История проверена %1"
+
+msgctxt "SkinManageDialog"
+msgid "Loading the history..."
+msgstr "Загружаю историю…"
+
+msgctxt "SkinManageDialog"
+msgid "Couldn't load the history"
+msgstr "Не удалось загрузить историю"
+
+msgctxt "SkinManageDialog"
+msgid "crafty.gg doesn't know this account yet"
+msgstr "crafty.gg пока не знает этот аккаунт"
+
+msgctxt "SkinManageDialog"
+msgid "Skins added from the history: %n"
+msgstr "Из истории добавлено скинов: %n"
+
+msgctxt "SkinManageDialog"
+msgid "Nothing new in the history"
+msgstr "В истории ничего нового"

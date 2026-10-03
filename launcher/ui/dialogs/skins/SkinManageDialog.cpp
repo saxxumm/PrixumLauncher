@@ -27,14 +27,19 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QKeyEvent>
 #include <QListView>
+#include <QLocale>
 #include <QMenu>
 #include <QMimeDatabase>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPushButton>
 #include <QScreen>
+#include <QSet>
 #include <QTimer>
 #include <QUrl>
 
@@ -44,6 +49,7 @@
 #include "settings/SettingsObject.h"
 
 #include "minecraft/auth/Parsers.h"
+#include "minecraft/skins/SkinHistory.h"
 #include "minecraft/skins/SkinList.h"
 #include "minecraft/skins/SkinModel.h"
 #include "minecraft/skins/SkinRequests.h"
@@ -152,11 +158,161 @@ SkinManageDialog::SkinManageDialog(QWidget* parent, MinecraftAccountPtr acct)
         button->setDefault(false);
     }
     checkClipboard();
+
+    m_historyAvailable = m_acct->accountType() == AccountType::MSA && m_acct->hasProfile();
+    for (auto* widget : std::initializer_list<QWidget*>{ m_ui->historyCheck, m_ui->historyRefresh, m_ui->historyStatus }) {
+        widget->setVisible(m_historyAvailable);
+    }
+    m_ui->historyRefresh->setIcon(NovaIcons::icon("refresh", NovaIcons::Tint::Muted));
+    m_ui->historyCheck->setChecked(APPLICATION->settings()->get("SkinHistoryEnabled").toBool());
+    m_ui->historyRefresh->setEnabled(m_ui->historyCheck->isChecked());
+    connect(m_ui->historyCheck, &QCheckBox::toggled, this, [this](bool enabled) {
+        APPLICATION->settings()->set("SkinHistoryEnabled", enabled);
+        m_ui->historyRefresh->setEnabled(enabled);
+        if (enabled) {
+            loadSkinHistory(false);
+        } else {
+            if (m_historyJob) {
+                m_historyJob->disconnect(this);
+                m_historyJob->abort();
+            }
+            m_ui->historyStatus->clear();
+        }
+    });
+    connect(m_ui->historyRefresh, &QToolButton::clicked, this, [this] { loadSkinHistory(true); });
+    loadSkinHistory(false);
 }
 
 SkinManageDialog::~SkinManageDialog()
 {
+    if (m_historyJob) {
+        m_historyJob->disconnect(this);
+        m_historyJob->abort();
+    }
     delete m_ui;
+}
+
+namespace {
+
+/// per account: when the history was fetched last and the skins it had, so removed skins stay removed
+QJsonObject historyState()
+{
+    return QJsonDocument::fromJson(APPLICATION->settings()->get("SkinHistoryState").toString().toUtf8()).object();
+}
+
+void saveHistoryState(const QJsonObject& state)
+{
+    APPLICATION->settings()->set("SkinHistoryState", QString::fromUtf8(QJsonDocument(state).toJson(QJsonDocument::Compact)));
+}
+
+}  // namespace
+
+void SkinManageDialog::loadSkinHistory(bool force)
+{
+    if (!m_historyAvailable || !m_ui->historyCheck->isChecked() || (m_historyJob && m_historyJob->isRunning())) {
+        return;
+    }
+    const QString id = m_acct->profileId();
+    const auto checked = QDateTime::fromString(historyState().value(id).toObject().value("checked").toString(), Qt::ISODate);
+    // the history changes rarely and crafty.gg limits requests
+    if (!force && checked.isValid() && checked.secsTo(QDateTime::currentDateTimeUtc()) < 12 * 60 * 60) {
+        m_ui->historyStatus->setText(tr("History checked %1").arg(QLocale().toString(checked.toLocalTime(), QLocale::ShortFormat)));
+        return;
+    }
+    m_ui->historyStatus->setText(tr("Loading the history..."));
+    m_historyJob.reset(new NetJob(tr("Skin history"), APPLICATION->network(), 1));
+    m_historyJob->setAskRetry(false);
+    auto [request, response] = Net::Request::makeByteArray(SkinHistory::playerUrl(id));
+    m_historyJob->addNetAction(request);
+    connect(m_historyJob.get(), &Task::succeeded, this, [this, request, response] { addHistory(*response); });
+    connect(m_historyJob.get(), &Task::failed, this, [this, request](const QString& reason) {
+        qWarning() << "Couldn't load the skin history:" << reason;
+        if (request->replyStatusCode() == 404) {
+            // remember the answer, asking again soon would not change it
+            addHistory(QByteArray());
+        } else {
+            m_ui->historyStatus->setText(tr("Couldn't load the history"));
+        }
+    });
+    m_historyJob->start();
+}
+
+void SkinManageDialog::addHistory(const QByteArray& response)
+{
+    const QString id = m_acct->profileId();
+    auto state = historyState();
+    auto account = state.value(id).toObject();
+    account["checked"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+
+    QString error;
+    const auto entries = SkinHistory::parsePlayer(response, &error);
+    if (!error.isEmpty()) {
+        qWarning() << "No skin history for" << m_acct->profileName() << ":" << error;
+        state[id] = account;
+        saveHistoryState(state);
+        m_ui->historyStatus->setText(tr("crafty.gg doesn't know this account yet"));
+        return;
+    }
+
+    QJsonArray seenList = account.value("seen").toArray();
+    QSet<QString> seen;
+    for (const auto& hash : std::as_const(seenList)) {
+        seen << hash.toString();
+    }
+    // skins saved already, by their texture address or by the picture for ones added by hand
+    QSet<QString> savedHashes;
+    QList<QImage> savedTextures;
+    for (int row = 0; row < m_list.rowCount(); row++) {
+        if (const auto* skin = m_list.skin(m_list.index(row).data(Qt::UserRole).toString())) {
+            savedHashes << SkinHistory::hashOfUrl(skin->getURL());
+            savedTextures << skin->getTexture();
+        }
+    }
+
+    int added = 0;
+    // oldest first, the newest skin ends up last like one added by hand
+    for (auto it = entries.crbegin(); it != entries.crend(); ++it) {
+        const auto& entry = *it;
+        if (seen.contains(entry.hash)) {
+            continue;
+        }
+        seen << entry.hash;
+        seenList << entry.hash;
+        QImage texture;
+        texture.loadFromData(entry.png, "PNG");
+        if (savedHashes.contains(entry.hash) || savedTextures.contains(texture)) {
+            continue;
+        }
+        const QString name = QStringLiteral("%1 %2").arg(
+            m_acct->profileName(), entry.wornAt.isValid() ? entry.wornAt.toLocalTime().date().toString(Qt::ISODate) : entry.hash.left(8));
+        QString path = FS::PathCombine(m_list.getDir(), name + ".png");
+        for (int copy = 2; QFileInfo::exists(path); copy++) {
+            path = FS::PathCombine(m_list.getDir(), QStringLiteral("%1 (%2).png").arg(name).arg(copy));
+        }
+        if (auto written = FS::write(path, entry.png); !written) {
+            qWarning() << "Couldn't save a skin from the history:" << written.error();
+            continue;
+        }
+        SkinModel skin(path);
+        if (!skin.isValid()) {
+            QFile::remove(path);
+            continue;
+        }
+        skin.setModel(entry.slim ? SkinModel::SLIM : SkinModel::CLASSIC);
+        skin.setURL(SkinHistory::textureUrl(entry.hash));
+        m_list.updateSkin(&skin);
+        savedHashes << entry.hash;
+        savedTextures << texture;
+        added++;
+    }
+    // the folder watcher reloads the list from the index, the model and the address have to be in it by then
+    if (added > 0) {
+        m_list.save();
+    }
+    account["seen"] = seenList;
+    state[id] = account;
+    saveHistoryState(state);
+    m_ui->historyStatus->setText(added > 0 ? tr("Skins added from the history: %n", "", added) : tr("Nothing new in the history"));
 }
 
 void SkinManageDialog::showEvent(QShowEvent* event)
@@ -690,6 +846,8 @@ bool SkinManageDialog::importPlayer(const QString& user)
         s.setCapeId(mcProfile.currentCape);
     }
     m_list.updateSkin(&s);
+    // the folder watcher reloads the list from the index, it has to know the model and the address
+    m_list.save();
     selectWhenListed(s.name());
     return true;
 }

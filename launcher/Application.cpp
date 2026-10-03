@@ -729,6 +729,9 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("DownloadsDirWatchRecursive", false);
         m_settings->registerSetting("MoveModsFromDownloadsDir", false);
         m_settings->registerSetting("SkinsDir", "skins");
+        // earlier skins of the account from crafty.gg, and per account when they were fetched and which were seen
+        m_settings->registerSetting("SkinHistoryEnabled", true);
+        m_settings->registerSetting("SkinHistoryState", QString());
         m_settings->registerSetting("JavaDir", "java");
 
 #ifdef Q_OS_MACOS

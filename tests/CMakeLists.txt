@@ -86,3 +86,6 @@ ecm_add_test(ElyBy_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}:
 
 ecm_add_test(SkinSource_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
     TEST_NAME SkinSource)
+
+ecm_add_test(SkinHistory_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
+    TEST_NAME SkinHistory)

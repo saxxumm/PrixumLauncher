@@ -381,6 +381,8 @@ set(MINECRAFT_SOURCES
     minecraft/skins/SkinList.h
     minecraft/skins/SkinSource.cpp
     minecraft/skins/SkinSource.h
+    minecraft/skins/SkinHistory.cpp
+    minecraft/skins/SkinHistory.h
 
     minecraft/Agent.h)
 
