@@ -96,14 +96,14 @@ QPixmap themePreview(ITheme* theme, qreal devicePixelRatio)
     painter.setClipPath(shape);
 
     QColor faint = text;
-    faint.setAlphaF(0.3);
+    faint.setAlphaF(0.3F);
     const QRectF side(0, 0, bounds.width() * 0.28, bounds.height());
     painter.fillRect(side, sidebar);
     for (int i = 0; i < 4; i++) {
         QColor color = faint;
         if (i == 0) {
             color = accent;
-            color.setAlphaF(0.45);
+            color.setAlphaF(0.45F);
         }
         painter.setBrush(color);
         painter.drawRoundedRect(QRectF(side.left() + 6, 10 + i * 11, side.width() - 12, 6), 3, 3);
@@ -114,7 +114,7 @@ QPixmap themePreview(ITheme* theme, qreal devicePixelRatio)
     painter.drawRoundedRect(card, 5, 5);
     const qreal tileWidth = (card.width() - 12 - 8) / 3;
     QColor tile = text;
-    tile.setAlphaF(0.1);
+    tile.setAlphaF(0.1F);
     painter.setBrush(tile);
     for (int i = 0; i < 3; i++) {
         painter.drawRoundedRect(QRectF(card.left() + 6 + i * (tileWidth + 4), card.top() + 6, tileWidth, card.height() * 0.42), 3, 3);

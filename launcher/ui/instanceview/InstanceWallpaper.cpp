@@ -21,6 +21,7 @@
 #include <QPainter>
 #include <algorithm>
 #include <cmath>
+#include <utility>
 #include "ui/themes/NovaTheme.h"
 
 namespace {
@@ -31,13 +32,19 @@ constexpr QSize s_maxSourceSize(3840, 2400);
 template <bool Rows>
 void boxBlur(const QImage& source, QImage& target, int radius)
 {
-    const int length = Rows ? source.width() : source.height();
-    const int lines = Rows ? source.height() : source.width();
+    int length = source.height();
+    int lines = source.width();
+    if constexpr (Rows) {
+        std::swap(length, lines);
+    }
     const int window = 2 * radius + 1;
     auto pixel = [&](int line, int position) {
         position = std::clamp(position, 0, length - 1);
-        return Rows ? reinterpret_cast<const QRgb*>(source.constScanLine(line))[position]
-                    : reinterpret_cast<const QRgb*>(source.constScanLine(position))[line];
+        if constexpr (Rows) {
+            return reinterpret_cast<const QRgb*>(source.constScanLine(line))[position];
+        } else {
+            return reinterpret_cast<const QRgb*>(source.constScanLine(position))[line];
+        }
     };
     for (int line = 0; line < lines; line++) {
         int sum[4] = {};
@@ -52,7 +59,7 @@ void boxBlur(const QImage& source, QImage& target, int radius)
         }
         for (int position = 0; position < length; position++) {
             const QRgb value = qRgba(sum[0] / window, sum[1] / window, sum[2] / window, sum[3] / window);
-            if (Rows) {
+            if constexpr (Rows) {
                 reinterpret_cast<QRgb*>(target.scanLine(line))[position] = value;
             } else {
                 reinterpret_cast<QRgb*>(target.scanLine(position))[line] = value;
@@ -122,7 +129,7 @@ void InstanceWallpaper::prepare(const QSize& size, qreal devicePixelRatio)
     if (m_dim > 0 && m_background.isValid()) {
         QPainter painter(&cover);
         QColor veil = m_background;
-        veil.setAlphaF(std::clamp(m_dim, 0, 100) / 100.0);
+        veil.setAlphaF(static_cast<float>(std::clamp(m_dim, 0, 100)) / 100.0F);
         painter.fillRect(cover.rect(), veil);
     }
     m_glass = blurred(cover, static_cast<int>(std::lround(m_blurRadius * devicePixelRatio)));
@@ -147,13 +154,13 @@ void InstanceWallpaper::paintTile(QPainter* painter, const QRect& card, qreal ra
     painter->save();
     painter->setRenderHint(QPainter::Antialiasing, true);
     QColor tint = tokens.color("surface");
-    tint.setAlphaF(hovered || selected ? 0.5 : 0.32);
+    tint.setAlphaF(hovered || selected ? 0.5F : 0.32F);
     painter->setPen(Qt::NoPen);
     painter->setBrush(tint);
     painter->drawRoundedRect(glass, radius, radius);
     if (selected) {
         QColor accent = tokens.color("accent");
-        accent.setAlphaF(0.22);
+        accent.setAlphaF(0.22F);
         painter->setBrush(accent);
         painter->drawRoundedRect(glass, radius, radius);
     }
