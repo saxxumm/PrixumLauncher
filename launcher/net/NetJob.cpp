@@ -71,8 +71,9 @@ void NetJob::executeNextSubTask()
     if (isRunning() && m_queue.isEmpty() && m_doing.isEmpty() && !m_failed.isEmpty() && m_try < 3) {
         m_try += 1;
         m_failed.removeIf([this](QHash<Task*, Task::Ptr>::iterator task) {
-            // there is no point in retying on 404 Not Found
-            if (static_cast<Net::Request*>(task->get())->replyStatusCode() == 404) {
+            // other tasks, like an account refresh, handle their own retries; there is no point in retying on 404 Not Found
+            auto request = dynamic_cast<Net::Request*>(task->get());
+            if (!request || request->replyStatusCode() == 404) {
                 return false;
             }
             m_done.remove(task->get());
@@ -135,7 +136,9 @@ auto NetJob::getFailedActions() -> QList<Net::Request*>
 {
     QList<Net::Request*> failed;
     for (auto index : m_failed) {
-        failed.push_back(dynamic_cast<Net::Request*>(index.get()));
+        if (auto request = dynamic_cast<Net::Request*>(index.get())) {
+            failed.push_back(request);
+        }
     }
     return failed;
 }
@@ -144,7 +147,9 @@ auto NetJob::getFailedFiles() -> QList<QString>
 {
     QList<QString> failed;
     for (auto index : m_failed) {
-        failed.append(static_cast<Net::Request*>(index.get())->url().toString());
+        if (auto request = dynamic_cast<Net::Request*>(index.get())) {
+            failed.append(request->url().toString());
+        }
     }
     return failed;
 }
