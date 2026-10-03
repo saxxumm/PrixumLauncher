@@ -6,97 +6,273 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>968</width>
-    <height>757</height>
+    <width>1180</width>
+    <height>760</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Skin Upload</string>
+   <string>Skins</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QHBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>20</number>
+   </property>
+   <property name="leftMargin">
+    <number>20</number>
+   </property>
+   <property name="topMargin">
+    <number>20</number>
+   </property>
+   <property name="rightMargin">
+    <number>20</number>
+   </property>
+   <property name="bottomMargin">
+    <number>16</number>
+   </property>
    <item>
-    <layout class="QHBoxLayout" name="mainHlLayout" stretch="3,8">
+    <widget class="QFrame" name="previewCard">
+     <property name="minimumSize">
+      <size>
+       <width>320</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>380</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="novaRole" stdset="0">
+      <string notr="true">card</string>
+     </property>
+     <layout class="QVBoxLayout" name="skinLayout">
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <property name="leftMargin">
+       <number>18</number>
+      </property>
+      <property name="topMargin">
+       <number>18</number>
+      </property>
+      <property name="rightMargin">
+       <number>18</number>
+      </property>
+      <property name="bottomMargin">
+       <number>18</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="skinsTitle">
+        <property name="text">
+         <string>Skins</string>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignmentFlag::AlignHCenter">
+       <widget class="QLabel" name="nameTag"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="rotateHint">
+        <property name="text">
+         <string>Drag to rotate</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+        <property name="novaRole" stdset="0">
+         <string notr="true">muted</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="modelLabel">
+        <property name="text">
+         <string>Model</string>
+        </property>
+        <property name="novaRole" stdset="0">
+         <string notr="true">cardTitle</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="modelRow">
+        <property name="spacing">
+         <number>8</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="steveBtn">
+          <property name="text">
+           <string>Classic</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+          <property name="novaRole" stdset="0">
+           <string notr="true">choice</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="alexBtn">
+          <property name="text">
+           <string>Slim</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+          <property name="novaRole" stdset="0">
+           <string notr="true">choice</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="capeLabel">
+        <property name="text">
+         <string>Cape</string>
+        </property>
+        <property name="novaRole" stdset="0">
+         <string notr="true">cardTitle</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="capeCombo">
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>32</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="rightLayout">
+     <property name="spacing">
+      <number>12</number>
+     </property>
      <item>
-      <layout class="QVBoxLayout" name="selectedVLayout" stretch="2,1,3">
+      <layout class="QHBoxLayout" name="headerRow">
+       <property name="spacing">
+        <number>8</number>
+       </property>
        <item>
-        <layout class="QVBoxLayout" name="skinLayout"/>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="modelBox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+        <widget class="QLabel" name="savedTitle">
+         <property name="text">
+          <string>Saved skins</string>
          </property>
-         <property name="title">
-          <string>Model</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QRadioButton" name="steveBtn">
-            <property name="text">
-             <string>Classic</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="alexBtn">
-            <property name="text">
-             <string>Slim</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="capeBox">
-         <property name="title">
-          <string>Cape</string>
+        <spacer name="headerSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QCheckBox" name="elytraCB">
-            <property name="text">
-             <string>Preview Elytra</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="capeCombo"/>
-          </item>
-          <item>
-           <widget class="QLabel" name="capeImage">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="scaledContents">
-             <bool>false</bool>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="urlLine">
+         <property name="minimumSize">
+          <size>
+           <width>340</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="placeholderText">
+          <string>Player name or a link to a skin (NameMC, PNG)</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="importBtn">
+         <property name="text">
+          <string>Add</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QFrame" name="clipboardNotice">
+       <layout class="QHBoxLayout" name="clipboardLayout">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <property name="leftMargin">
+         <number>12</number>
+        </property>
+        <property name="topMargin">
+         <number>8</number>
+        </property>
+        <property name="rightMargin">
+         <number>8</number>
+        </property>
+        <property name="bottomMargin">
+         <number>8</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="clipboardText">
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="clipboardAddBtn">
+          <property name="text">
+           <string>Add</string>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="clipboardCloseBtn">
+          <property name="toolTip">
+           <string>Hide</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
      <item>
       <widget class="QListView" name="listView">
        <property name="contextMenuPolicy">
         <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
        </property>
-       <property name="acceptDrops">
-        <bool>false</bool>
-       </property>
-       <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::EditKeyPressed</set>
        </property>
        <property name="verticalScrollMode">
         <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
@@ -107,75 +283,60 @@
        <property name="resizeMode">
         <enum>QListView::ResizeMode::Adjust</enum>
        </property>
-       <property name="spacing">
-        <number>5</number>
-       </property>
        <property name="viewMode">
         <enum>QListView::ViewMode::IconMode</enum>
        </property>
-       <property name="modelColumn">
-        <number>0</number>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="buttonsHLayout" stretch="0,0,3,0,0,0,1">
-     <item>
-      <widget class="QPushButton" name="openDirBtn">
-       <property name="text">
-        <string>Open Folder</string>
+       <property name="uniformItemSizes">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="resetBtn">
-       <property name="text">
-        <string>Reset Skin</string>
+      <layout class="QHBoxLayout" name="bottomRow">
+       <property name="spacing">
+        <number>8</number>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="urlLine">
-       <property name="placeholderText">
-        <string extracomment="URL or username"/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="urlBtn">
-       <property name="text">
-        <string>Import URL</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="userBtn">
-       <property name="text">
-        <string>Import user</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="fileBtn">
-       <property name="text">
-        <string>Import File</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QDialogButtonBox" name="buttonBox">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="standardButtons">
-        <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
-       </property>
-      </widget>
+       <item>
+        <widget class="QPushButton" name="openDirBtn">
+         <property name="text">
+          <string>Open Folder</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="resetBtn">
+         <property name="text">
+          <string>Reset Skin</string>
+         </property>
+         <property name="autoDefault">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="bottomSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QDialogButtonBox" name="buttonBox">
+         <property name="standardButtons">
+          <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -210,32 +371,12 @@
    <signal>rejected()</signal>
    <receiver>SkinManageDialog</receiver>
    <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>617</x>
-     <y>736</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>483</x>
-     <y>378</y>
-    </hint>
-   </hints>
   </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
    <receiver>SkinManageDialog</receiver>
    <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>617</x>
-     <y>736</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>483</x>
-     <y>378</y>
-    </hint>
-   </hints>
   </connection>
  </connections>
 </ui>

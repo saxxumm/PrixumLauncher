@@ -416,7 +416,7 @@ QCheckBox, QRadioButton {
     background: transparent;
 }
 
-QCheckBox::indicator, QGroupBox::indicator, QAbstractItemView::indicator {
+QAbstractItemView::indicator {
     width: 16px;
     height: 16px;
     border: 1px solid @borderStrong;
@@ -424,30 +424,62 @@ QCheckBox::indicator, QGroupBox::indicator, QAbstractItemView::indicator {
     background: @surfaceAlt;
 }
 
-QCheckBox::indicator:hover, QGroupBox::indicator:hover, QAbstractItemView::indicator:hover {
+QAbstractItemView::indicator:hover {
     border-color: @accent;
 }
 
-QCheckBox::indicator:checked, QGroupBox::indicator:checked, QAbstractItemView::indicator:checked {
+QAbstractItemView::indicator:checked {
     background: @accent;
     border-color: @accent;
     image: url(nova:check-accentText.svg);
 }
 
-QCheckBox::indicator:indeterminate, QAbstractItemView::indicator:indeterminate {
+QAbstractItemView::indicator:indeterminate {
     background: @accent;
     border-color: @accent;
     image: url(nova:partial-accentText.svg);
 }
 
-QCheckBox::indicator:disabled, QGroupBox::indicator:disabled, QAbstractItemView::indicator:disabled {
+QAbstractItemView::indicator:disabled {
     background: @surface;
     border-color: @border;
 }
 
+/* check boxes are switches, like the toggles of a phone */
+QCheckBox::indicator, QGroupBox::indicator {
+    width: 36px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    image: url(nova:switch-off.svg);
+}
+
+QCheckBox::indicator:hover, QGroupBox::indicator:hover {
+    image: url(nova:switch-off-hover.svg);
+}
+
+QCheckBox::indicator:checked, QGroupBox::indicator:checked {
+    image: url(nova:switch-on.svg);
+}
+
+QCheckBox::indicator:checked:hover, QGroupBox::indicator:checked:hover {
+    image: url(nova:switch-on-hover.svg);
+}
+
+QCheckBox::indicator:indeterminate {
+    image: url(nova:switch-mixed.svg);
+}
+
+QCheckBox::indicator:disabled, QGroupBox::indicator:disabled {
+    image: url(nova:switch-off-disabled.svg);
+}
+
 QCheckBox::indicator:checked:disabled, QGroupBox::indicator:checked:disabled {
-    background: @textDisabled;
-    border-color: @textDisabled;
+    image: url(nova:switch-on-disabled.svg);
+}
+
+QCheckBox {
+    spacing: 10px;
 }
 
 QRadioButton::indicator {
@@ -655,17 +687,28 @@ QGroupBox {
     background: @surface;
     border: 1px solid @border;
     border-radius: @radius;
-    margin-top: 26px;
-    padding: 12px 10px 10px 10px;
+    margin-top: 0px;
+    padding: 38px 14px 12px 14px;
 }
 
+/* the title sits inside the card, like a heading */
 QGroupBox::title {
-    subcontrol-origin: margin;
+    subcontrol-origin: padding;
     subcontrol-position: top left;
-    left: 6px;
-    padding: 0 4px 6px 4px;
+    left: 14px;
+    top: 13px;
+    padding: 0px;
     color: @text;
     font-weight: 600;
+}
+
+/* group boxes without a title are plain cards */
+QGroupBox[title=""] {
+    padding-top: 12px;
+}
+
+QGroupBox::indicator {
+    margin-right: 8px;
 }
 
 QGroupBox[flat="true"] {
@@ -797,6 +840,74 @@ QLabel#pageHeader {
     font-size: @titleSize;
     font-weight: 700;
     padding: 6px 0px 4px 0px;
+}
+
+QLabel#pageDescription {
+    color: @textMuted;
+    padding: 0px 0px 8px 0px;
+}
+
+/* the settings window: a sidebar with search and groups, a footer under the pages */
+QDialog#settingsDialog QFrame#pageSidebar {
+    background: @sidebar;
+}
+
+QDialog#settingsDialog QListView#pageList {
+    padding: 4px 8px 8px 8px;
+}
+
+QDialog#settingsDialog QListView#pageList::item {
+    padding: 7px 8px;
+}
+
+QWidget#settingsSearchBox {
+    background: transparent;
+}
+
+QLineEdit#settingsSearch {
+    padding: 6px 8px;
+    border-radius: @controlRadius;
+}
+
+QFrame#pageFooter {
+    background: transparent;
+    border: none;
+    border-top: 1px solid @border;
+}
+
+/* what the settings search found on the open page */
+QLabel[novaSearchMatch="true"], QCheckBox[novaSearchMatch="true"], QRadioButton[novaSearchMatch="true"] {
+    background: @accentSoft;
+    border-radius: 4px;
+}
+
+QPushButton[novaSearchMatch="true"], QLineEdit[novaSearchMatch="true"], QGroupBox[novaSearchMatch="true"] {
+    border-color: @accent;
+}
+
+/* appearance: themes as little windows in their own colors */
+QListWidget#themeCards {
+    background: transparent;
+    border: none;
+    padding: 0px;
+}
+
+QListWidget#themeCards::item {
+    border: 1px solid transparent;
+    border-radius: @radius;
+    padding: 6px 4px 4px 4px;
+    color: @textMuted;
+}
+
+QListWidget#themeCards::item:hover {
+    background: @hover;
+    color: @text;
+}
+
+QListWidget#themeCards::item:selected {
+    background: @accentSoft;
+    border-color: @accent;
+    color: @text;
 }
 
 QLabel#renderScalingStatus {
@@ -1303,4 +1414,32 @@ QPushButton[novaRole="accent"]:disabled {
     color: @textDisabled;
     border-color: @border;
     font-weight: 400;
+}
+
+/* ---------- skins ---------- */
+
+QLabel#skinsTitle {
+    font-size: @titleSize;
+    font-weight: 700;
+}
+
+/* the name above the player, like the one floating over players in game */
+QLabel#skinNameTag {
+    background: rgba(0, 0, 0, 0.45);
+    color: #ffffff;
+    border-radius: @radiusSmall;
+    padding: 4px 12px;
+    font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+    font-weight: 600;
+}
+
+QListView#skinGrid {
+    background: transparent;
+    border: none;
+}
+
+QFrame#skinClipboardNotice {
+    background: @accentSoft;
+    border: 1px solid @accent;
+    border-radius: @radius;
 }

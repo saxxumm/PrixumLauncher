@@ -48,6 +48,8 @@
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ElyByLoginDialog.h"
 #include "ui/dialogs/MSALoginDialog.h"
+#include "ui/themes/NovaIcons.h"
+#include "ui/widgets/PageActionBar.h"
 
 #include "Application.h"
 
@@ -88,6 +90,27 @@ AccountListPage::AccountListPage(QWidget* parent) : QMainWindow(parent), ui(new 
     if (~APPLICATION->capabilities() & Application::SupportsMSA) {
         ui->actionAddMicrosoft->setVisible(false);
         ui->actionAddMicrosoft->setToolTip(tr("No Microsoft Authentication client ID was set."));
+    }
+
+    // a bar above the list like on the instance pages, the ways to add an account share one button
+    {
+        using NovaIcons::Tint;
+        auto* addAccount = new QAction(NovaIcons::icon("account-add", Tint::AccentText), tr("Add Account"), this);
+        auto* addMenu = new QMenu(this);
+        for (auto* action : { ui->actionAddMicrosoft, ui->actionAddElyBy, ui->actionAddOffline }) {
+            addMenu->addAction(action);
+            ui->toolBar->removeAction(action);
+        }
+        addAccount->setMenu(addMenu);
+        connect(addAccount, &QAction::triggered, this,
+                [this] { (ui->actionAddMicrosoft->isVisible() ? ui->actionAddMicrosoft : ui->actionAddElyBy)->trigger(); });
+        ui->actionManageSkins->setIcon(NovaIcons::icon("image"));
+        ui->actionSetDefault->setIcon(NovaIcons::icon("star"));
+        ui->actionNoDefault->setIcon(NovaIcons::icon("user-x"));
+        ui->actionRefresh->setIcon(NovaIcons::icon("refresh"));
+        ui->actionRemove->setIcon(NovaIcons::icon("trash", Tint::Danger));
+        PageActionBar::install(this, ui->toolBar,
+                               { addAccount, { ui->actionManageSkins, ui->actionSetDefault, ui->actionRefresh }, { ui->actionRemove } });
     }
 }
 

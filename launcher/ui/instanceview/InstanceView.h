@@ -40,8 +40,11 @@
 #include <QListView>
 #include <QScrollBar>
 #include <functional>
+#include <memory>
 #include "VisualGroup.h"
 #include "ui/themes/CatPainter.h"
+
+class InstanceWallpaper;
 
 struct InstanceViewRoles {
     enum { GroupRole = Qt::UserRole };
@@ -79,6 +82,10 @@ class InstanceView : public QAbstractItemView {
 
     int spacing() const { return m_spacing; };
     void setPaintCat(bool visible);
+    /// reads the wallpaper settings, the tiles turn into frosted glass while a wallpaper shows
+    void updateWallpaper();
+    /// null without a wallpaper
+    const InstanceWallpaper* wallpaper() const { return m_wallpaper.get(); }
 
     /// width of one instance tile, the delegate has to be told separately
     void setItemWidth(int width);
@@ -109,6 +116,7 @@ class InstanceView : public QAbstractItemView {
     bool viewportEvent(QEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
+    void changeEvent(QEvent* event) override;
 
     void dragEnterEvent(QDragEnterEvent* event) override;
     void dragMoveEvent(QDragMoveEvent* event) override;
@@ -136,6 +144,8 @@ class InstanceView : public QAbstractItemView {
     int m_currentCursorColumn = -1;
     mutable QCache<int, QRect> m_geometryCache;
     CatPainter* m_cat = nullptr;
+    std::unique_ptr<InstanceWallpaper> m_wallpaper;
+    QString m_wallpaperPath;
     QPersistentModelIndex m_hoverIndex;
     QString m_emptyTitle;
     QString m_emptySubtitle;

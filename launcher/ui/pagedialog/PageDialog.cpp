@@ -16,19 +16,25 @@
 #include "PageDialog.h"
 
 #include <QDialogButtonBox>
+#include <QFrame>
+#include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QPushButton>
+#include <QScreen>
 #include <QVBoxLayout>
 
 #include "Application.h"
 #include "settings/SettingsObject.h"
 
+#include "ui/themes/NovaIcons.h"
 #include "ui/widgets/PageContainer.h"
 
 PageDialog::PageDialog(BasePageProvider* pageProvider, QString defaultId, QWidget* parent) : QDialog(parent)
 {
     setWindowTitle(pageProvider->dialogTitle());
+    setObjectName("settingsDialog");
     m_container = new PageContainer(pageProvider, std::move(defaultId), this);
+    m_container->useSettingsLayout(pageProvider->pageGroups());
 
     auto* mainLayout = new QVBoxLayout(this);
 
@@ -45,16 +51,32 @@ PageDialog::PageDialog(BasePageProvider* pageProvider, QString defaultId, QWidge
 
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Help | QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     buttons->button(QDialogButtonBox::Ok)->setText(tr("&OK"));
+    buttons->button(QDialogButtonBox::Ok)->setProperty("novaRole", "accent");
     buttons->button(QDialogButtonBox::Cancel)->setText(tr("&Cancel"));
     buttons->button(QDialogButtonBox::Help)->setText(tr("Help"));
-    buttons->setContentsMargins(0, 0, 6, 6);
-    m_container->addButtons(buttons);
+    buttons->button(QDialogButtonBox::Help)->setIcon(NovaIcons::icon("help", NovaIcons::Tint::Muted));
+    // a strip along the bottom, apart from the page
+    auto* footer = new QFrame(this);
+    footer->setObjectName("pageFooter");
+    auto* footerLayout = new QHBoxLayout(footer);
+    footerLayout->setContentsMargins(4, 10, 16, 12);
+    footerLayout->addWidget(buttons);
+    m_container->addButtons(footer);
 
     connect(buttons->button(QDialogButtonBox::Ok), &QPushButton::clicked, this, &PageDialog::accept);
     connect(buttons->button(QDialogButtonBox::Cancel), &QPushButton::clicked, this, &PageDialog::reject);
     connect(buttons->button(QDialogButtonBox::Help), &QPushButton::clicked, m_container, &PageContainer::help);
 
     restoreGeometry(QByteArray::fromBase64(APPLICATION->settings()->get("PagedGeometry").toString().toUtf8()));
+    // windows saved by older versions were smaller than the pages need now
+    const QSize preferred(1100, 740);
+    if (width() < preferred.width() || height() < preferred.height()) {
+        QSize size = preferred.expandedTo(this->size());
+        if (auto* screen = this->screen()) {
+            size = size.boundedTo(screen->availableSize() * 0.92);
+        }
+        resize(size);
+    }
 }
 
 void PageDialog::accept()

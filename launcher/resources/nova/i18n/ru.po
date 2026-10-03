@@ -6257,6 +6257,138 @@ msgctxt "SkinManageDialog"
 msgid "Unable to find the skin for '%1'\n because: %2."
 msgstr "Не удалось найти скин «%1»:\n%2."
 
+msgctxt "SkinManageDialog"
+msgid "Skins"
+msgstr "Скины"
+
+msgctxt "SkinManageDialog"
+msgid "Saved skins"
+msgstr "Сохранённые скины"
+
+msgctxt "SkinManageDialog"
+msgid "Drag to rotate"
+msgstr "Потяните, чтобы повернуть"
+
+msgctxt "SkinManageDialog"
+msgid "Model"
+msgstr "Модель"
+
+msgctxt "SkinManageDialog"
+msgid "Classic"
+msgstr "Классическая"
+
+msgctxt "SkinManageDialog"
+msgid "Cape"
+msgstr "Плащ"
+
+msgctxt "SkinManageDialog"
+msgid "Player name or a link to a skin (NameMC, PNG)"
+msgstr "Ник игрока или ссылка на скин (NameMC, PNG)"
+
+msgctxt "SkinManageDialog"
+msgid "Add"
+msgstr "Добавить"
+
+msgctxt "SkinManageDialog"
+msgid "Hide"
+msgstr "Скрыть"
+
+msgctxt "SkinManageDialog"
+msgid "Open Folder"
+msgstr "Открыть папку"
+
+msgctxt "SkinManageDialog"
+msgid "Reset Skin"
+msgstr "Сбросить скин"
+
+msgctxt "SkinManageDialog"
+msgid "Wear Skin"
+msgstr "Надеть скин"
+
+msgctxt "SkinManageDialog"
+msgid "Nothing to add"
+msgstr "Нечего добавлять"
+
+msgctxt "SkinManageDialog"
+msgid "Enter a player name or a link to a skin, for example from NameMC."
+msgstr "Введите ник игрока или ссылку на скин, например с NameMC."
+
+msgctxt "SkinManageDialog"
+msgid "There is a NameMC skin link in the clipboard."
+msgstr "В буфере обмена ссылка на скин с NameMC."
+
+msgctxt "SkinManageDialog"
+msgid "There is a skin link in the clipboard."
+msgstr "В буфере обмена ссылка на скин."
+
+msgctxt "SkinManageDialog"
+msgid "Download skin"
+msgstr "Скачивание скина"
+
+msgctxt "SkinManageDialog"
+msgid "Download user skin"
+msgstr "Скачивание скина игрока"
+
+msgctxt "SkinManageDialog"
+msgid "Select Skin Texture"
+msgstr "Выберите файл скина"
+
+msgctxt "SkinManageDialog"
+msgid "Context menu"
+msgstr "Контекстное меню"
+
+msgctxt "SkinManageDialog"
+msgid "&Delete Skin"
+msgstr "&Удалить скин"
+
+msgctxt "SkinManageDialog"
+msgid "&Rename Skin"
+msgstr "&Переименовать скин"
+
+msgctxt "SkinManageDialog"
+msgid "Rename selected skin"
+msgstr "Переименовать выбранный скин"
+
+msgctxt "SkinManageDialog"
+msgid "Reset skin"
+msgstr "Сброс скина"
+
+msgctxt "SkinManageDialog"
+msgid "Change skin"
+msgstr "Смена скина"
+
+msgctxt "SkinManageDialog"
+msgid "Failed to delete current skin!"
+msgstr "Не удалось сбросить скин!"
+
+msgctxt "SkinManageDialog"
+msgid "failed to download skin"
+msgstr "не удалось скачать скин"
+
+msgctxt "SkinManageDialog"
+msgid "failed to get user profile"
+msgstr "не удалось получить профиль игрока"
+
+msgctxt "SkinManageDialog"
+msgid "failed to get user UUID"
+msgstr "не удалось получить UUID игрока"
+
+msgctxt "SkinManageDialog"
+msgid "Cancel"
+msgstr "Отмена"
+
+msgctxt "SkinCardDelegate"
+msgid "Add skin"
+msgstr "Добавить скин"
+
+msgctxt "SkinCardDelegate"
+msgid "Drop a file or a link here"
+msgstr "Перетащите сюда файл или ссылку"
+
+msgctxt "SkinCardDelegate"
+msgid "Worn"
+msgstr "Надет"
+
 msgctxt "SubTaskProgressBar"
 msgid "Sub Task Status..."
 msgstr "Ход подзадачи…"
@@ -6896,3 +7028,191 @@ msgstr "Не удалось войти в Xbox: %1"
 msgctxt "XboxUserStep"
 msgid "Xbox user authentication response could not be understood."
 msgstr "Не удалось разобрать ответ Xbox."
+
+msgctxt "Application"
+msgid "Launcher"
+msgstr "Лаунчер"
+
+msgctxt "Application"
+msgid "Game"
+msgstr "Игра"
+
+msgctxt "Application"
+msgid "Accounts and Network"
+msgstr "Аккаунты и сеть"
+
+msgctxt "Application"
+msgid "Advanced"
+msgstr "Дополнительно"
+
+msgctxt "PageContainer"
+msgid "Search settings"
+msgstr "Поиск по настройкам"
+
+msgctxt "PageContainer"
+msgid "Nothing found"
+msgstr "Ничего не нашлось"
+
+msgctxt "LauncherPage"
+msgid "Interface, updates, folders, mods and the console of the launcher."
+msgstr "Интерфейс, обновления, папки, моды и консоль лаунчера."
+
+msgctxt "LanguagePage"
+msgid "The language of the launcher. The community translates it."
+msgstr "Язык лаунчера. Переводы делает сообщество."
+
+msgctxt "AppearancePage"
+msgid "Theme, icons, a wallpaper behind the instances and the cat."
+msgstr "Тема, значки, обои за сборками и котик."
+
+msgctxt "MinecraftPage"
+msgid "Window, console, game time, tweaks and commands for every instance that does not override them."
+msgstr "Окно, консоль, время в игре, твики и команды для всех сборок, у которых нет своих."
+
+msgctxt "JavaPage"
+msgid "Java installations, memory and arguments for every instance that does not override them."
+msgstr "Java, память и аргументы для всех сборок, у которых нет своих."
+
+msgctxt "JavaPage"
+msgid "General"
+msgstr "Общие"
+
+msgctxt "AccountListPage"
+msgid "The accounts you play with. Instances start with the default account."
+msgstr "Аккаунты, с которыми вы играете. Сборки запускаются с основного."
+
+msgctxt "AccountListPage"
+msgid "Add Account"
+msgstr "Добавить аккаунт"
+
+msgctxt "APIPage"
+msgid "Log uploads, metadata and asset servers, the user agent and API keys."
+msgstr "Загрузка логов, серверы метаданных и ресурсов, User Agent и ключи API."
+
+msgctxt "ProxyPage"
+msgid "A proxy for everything the launcher downloads."
+msgstr "Прокси для всего, что скачивает лаунчер."
+
+msgctxt "ExternalToolsPage"
+msgid "Editors, profilers and world tools the launcher can open."
+msgstr "Редакторы, профилировщики и инструменты для миров, которые открывает лаунчер."
+
+msgctxt "AppearanceWidget"
+msgid "Theme"
+msgstr "Тема"
+
+msgctxt "AppearanceWidget"
+msgid "Theme:"
+msgstr "Тема:"
+
+msgctxt "AppearanceWidget"
+msgid "Open Folder"
+msgstr "Открыть папку"
+
+msgctxt "AppearanceWidget"
+msgid "Reload All"
+msgstr "Перезагрузить все"
+
+msgctxt "AppearanceWidget"
+msgid "&Icons:"
+msgstr "&Значки:"
+
+msgctxt "AppearanceWidget"
+msgid "Wallpaper"
+msgstr "Обои"
+
+msgctxt "AppearanceWidget"
+msgid "Show a wallpaper behind the instances"
+msgstr "Показывать обои за сборками"
+
+msgctxt "AppearanceWidget"
+msgid "Instance tiles turn into frosted glass over the picture."
+msgstr "Плитки сборок станут матовым стеклом поверх картинки."
+
+msgctxt "AppearanceWidget"
+msgid "Picture:"
+msgstr "Картинка:"
+
+msgctxt "AppearanceWidget"
+msgid "PNG, JPEG or WebP image"
+msgstr "Картинка PNG, JPEG или WebP"
+
+msgctxt "AppearanceWidget"
+msgid "Choose..."
+msgstr "Выбрать…"
+
+msgctxt "AppearanceWidget"
+msgid "Glass blur:"
+msgstr "Размытие стекла:"
+
+msgctxt "AppearanceWidget"
+msgid "Dimming:"
+msgstr "Затемнение:"
+
+msgctxt "AppearanceWidget"
+msgid "Cat"
+msgstr "Котик"
+
+msgctxt "AppearanceWidget"
+msgid "Enable cat"
+msgstr "Включить котика"
+
+msgctxt "AppearanceWidget"
+msgid "&Pack:"
+msgstr "&Набор:"
+
+msgctxt "AppearanceWidget"
+msgid "Opacity:"
+msgstr "Непрозрачность:"
+
+msgctxt "AppearanceWidget"
+msgid "Size:"
+msgstr "Размер:"
+
+msgctxt "AppearanceWidget"
+msgid "Scaling:"
+msgstr "Вписывание:"
+
+msgctxt "AppearanceWidget"
+msgid "Fit"
+msgstr "Подогнать"
+
+msgctxt "AppearanceWidget"
+msgid "Stretch"
+msgstr "Растянуть"
+
+msgctxt "AppearanceWidget"
+msgid "Console"
+msgstr "Консоль"
+
+msgctxt "AppearanceWidget"
+msgid "%1%"
+msgstr "%1%"
+
+msgctxt "AppearanceWidget"
+msgid "%1 px"
+msgstr "%1 пикс."
+
+msgctxt "AppearanceWidget"
+msgid "Choose a Wallpaper"
+msgstr "Выберите обои"
+
+msgctxt "AppearanceWidget"
+msgid "Images (%1)"
+msgstr "Картинки (%1)"
+
+msgctxt "AppearanceWidget"
+msgid "No picture chosen"
+msgstr "Картинка не выбрана"
+
+msgctxt "AppearanceWidget"
+msgid "This picture can not be read"
+msgstr "Не удалось открыть эту картинку"
+
+msgctxt "AppearanceWidget"
+msgid "Instance"
+msgstr "Сборка"
+
+msgctxt "AppearanceWidget"
+msgid "Nova (follows the theme colors)"
+msgstr "Nova (в цветах темы)"

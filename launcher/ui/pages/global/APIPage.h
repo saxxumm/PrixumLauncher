@@ -53,6 +53,7 @@ class APIPage : public QWidget, public BasePage {
     ~APIPage();
 
     QString displayName() const override { return tr("Services"); }
+    QString description() const override { return tr("Log uploads, metadata and asset servers, the user agent and API keys."); }
     QIcon icon() const override { return QIcon::fromTheme("worlds"); }
     QString id() const override { return "apis"; }
     QString helpPage() const override { return "APIs"; }

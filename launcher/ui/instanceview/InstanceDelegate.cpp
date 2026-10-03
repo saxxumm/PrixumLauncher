@@ -45,6 +45,8 @@
 #include <QTextEdit>
 #include "BaseInstance.h"
 #include "InstanceList.h"
+#include "InstanceView.h"
+#include "InstanceWallpaper.h"
 #include "ui/themes/NovaTheme.h"
 
 // Origin: Qt
@@ -129,8 +131,11 @@ void ListViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
     const QRect card = opt.rect.adjusted(1, 1, -1, -1);
     const qreal radius = std::min(tokens.metric("radius"), 16);
 
-    // card background
-    if (selected) {
+    // card background, frosted glass over a wallpaper
+    const auto* view = qobject_cast<const InstanceView*>(opt.widget);
+    if (const auto* wallpaper = view ? view->wallpaper() : nullptr) {
+        wallpaper->paintTile(painter, card, radius, selected, hovered);
+    } else if (selected) {
         painter->setPen(QPen(tokens.color("accent"), 1.5));
         painter->setBrush(tokens.color("accentSoft"));
         painter->drawRoundedRect(QRectF(card).adjusted(0.75, 0.75, -0.75, -0.75), radius, radius);

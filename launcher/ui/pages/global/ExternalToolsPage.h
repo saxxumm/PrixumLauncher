@@ -53,6 +53,7 @@ class ExternalToolsPage : public QWidget, public BasePage {
     ~ExternalToolsPage() override;
 
     QString displayName() const override { return tr("Tools"); }
+    QString description() const override { return tr("Editors, profilers and world tools the launcher can open."); }
     QIcon icon() const override
     {
         auto icon = QIcon::fromTheme("externaltools");

@@ -48,7 +48,9 @@
 #include <QScrollBar>
 #include <QtMath>
 
+#include "InstanceWallpaper.h"
 #include "VisualGroup.h"
+#include "settings/SettingsObject.h"
 #include "ui/themes/CatPainter.h"
 #include "ui/themes/NovaIcons.h"
 #include "ui/themes/NovaTheme.h"
@@ -79,6 +81,7 @@ InstanceView::InstanceView(QWidget* parent) : QAbstractItemView(parent)
     m_emptyTitle = tr("Welcome!");
     m_emptySubtitle = tr("Click \"Add Instance\" to get started.");
     setPaintCat(APPLICATION->settings()->get("TheCat").toBool());
+    updateWallpaper();
     connect(verticalScrollBar(), &QScrollBar::valueChanged, viewport(), QOverload<>::of(&QWidget::update));
     connect(horizontalScrollBar(), &QScrollBar::valueChanged, viewport(), QOverload<>::of(&QWidget::update));
 }
@@ -500,11 +503,43 @@ void InstanceView::setPaintCat(bool visible)
     }
 }
 
+void InstanceView::updateWallpaper()
+{
+    auto* settings = APPLICATION->settings();
+    const QString path = settings->get("InstanceWallpaper").toString();
+    if (!settings->get("InstanceWallpaperEnabled").toBool() || path.isEmpty()) {
+        m_wallpaper.reset();
+        viewport()->update();
+        return;
+    }
+    if (!m_wallpaper || m_wallpaperPath != path) {
+        auto wallpaper = std::make_unique<InstanceWallpaper>();
+        if (!wallpaper->load(path)) {
+            qWarning() << "Couldn't load the instance wallpaper" << path;
+            m_wallpaper.reset();
+            viewport()->update();
+            return;
+        }
+        m_wallpaper = std::move(wallpaper);
+        m_wallpaperPath = path;
+    }
+    m_wallpaper->setBlurRadius(settings->get("InstanceWallpaperBlur").toInt());
+    m_wallpaper->setDim(settings->get("InstanceWallpaperDim").toInt(), Nova::current().color("surface"));
+    viewport()->update();
+}
+
 void InstanceView::paintEvent([[maybe_unused]] QPaintEvent* event)
 {
     executeDelayedItemsLayout();
 
     QPainter painter(this->viewport());
+
+    if (m_wallpaper) {
+        m_wallpaper->prepare(viewport()->size(), viewport()->devicePixelRatioF());
+        // the list sits in a rounded card, the picture follows its corners
+        const qreal radius = std::max(0, std::min(Nova::current().metric("radius"), 18) - 1);
+        m_wallpaper->paintBackground(&painter, QRectF(viewport()->rect()), radius);
+    }
 
     if (m_cat) {
         m_cat->paint(&painter, this->viewport()->rect());
@@ -644,6 +679,15 @@ void InstanceView::resizeEvent([[maybe_unused]] QResizeEvent* event)
     } else {
         updateScrollbar();
     }
+}
+
+void InstanceView::changeEvent(QEvent* event)
+{
+    // the veil over the wallpaper takes the color of the theme
+    if (event->type() == QEvent::PaletteChange && m_wallpaper) {
+        updateWallpaper();
+    }
+    QAbstractItemView::changeEvent(event);
 }
 
 void InstanceView::dragEnterEvent(QDragEnterEvent* event)

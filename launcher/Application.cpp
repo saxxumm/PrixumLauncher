@@ -845,6 +845,14 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting("TheCat", false);
         m_settings->registerSetting("CatOpacity", 100);
         m_settings->registerSetting("CatFit", "fit");
+        // percent of the size the fit mode gives the cat
+        m_settings->registerSetting("CatSize", 100);
+
+        // a picture behind the instances, the tiles turn into frosted glass over it
+        m_settings->registerSetting("InstanceWallpaperEnabled", false);
+        m_settings->registerSetting("InstanceWallpaper", QString());
+        m_settings->registerSetting("InstanceWallpaperBlur", 24);
+        m_settings->registerSetting("InstanceWallpaperDim", 30);
 
         m_settings->registerSetting("StatusBarVisible", true);
 
@@ -959,8 +967,16 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
             m_globalSettingsProvider->addPage<JavaPage>();
             m_globalSettingsProvider->addPage<AccountListPage>();
             m_globalSettingsProvider->addPage<APIPage>();
-            m_globalSettingsProvider->addPage<ExternalToolsPage>();
             m_globalSettingsProvider->addPage<ProxyPage>();
+            m_globalSettingsProvider->addPage<ExternalToolsPage>();
+            m_globalSettingsProvider->setPageGroups([] {
+                return BasePageProvider::PageGroups{
+                    { tr("Launcher"), { "launcher-settings", "language-settings", "appearance-settings" } },
+                    { tr("Game"), { "minecraft-settings", "java-settings" } },
+                    { tr("Accounts and Network"), { "accounts", "apis", "proxy-settings" } },
+                    { tr("Advanced"), { "external-tools" } },
+                };
+            });
         }
 
         PixmapCache::setInstance(new PixmapCache(this));

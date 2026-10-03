@@ -379,6 +379,8 @@ set(MINECRAFT_SOURCES
     minecraft/skins/SkinModel.h
     minecraft/skins/SkinList.cpp
     minecraft/skins/SkinList.h
+    minecraft/skins/SkinSource.cpp
+    minecraft/skins/SkinSource.h
 
     minecraft/Agent.h)
 
@@ -1106,12 +1108,12 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/skins/SkinManageDialog.cpp
     ui/dialogs/skins/SkinManageDialog.h
 
-    ui/dialogs/skins/draw/SkinOpenGLWindow.h
-    ui/dialogs/skins/draw/SkinOpenGLWindow.cpp
-    ui/dialogs/skins/draw/Scene.h
-    ui/dialogs/skins/draw/Scene.cpp
-    ui/dialogs/skins/draw/BoxGeometry.h
-    ui/dialogs/skins/draw/BoxGeometry.cpp
+    ui/dialogs/skins/SkinRenderer.h
+    ui/dialogs/skins/SkinRenderer.cpp
+    ui/dialogs/skins/SkinGrid.h
+    ui/dialogs/skins/SkinGrid.cpp
+    ui/dialogs/skins/SkinPreviewWidget.h
+    ui/dialogs/skins/SkinPreviewWidget.cpp
 
     # GUI - widgets
     ui/widgets/CheckComboBox.cpp
@@ -1178,6 +1180,8 @@ SET(LAUNCHER_SOURCES
     ui/instanceview/InstanceView.h
     ui/instanceview/InstanceDelegate.cpp
     ui/instanceview/InstanceDelegate.h
+    ui/instanceview/InstanceWallpaper.cpp
+    ui/instanceview/InstanceWallpaper.h
     ui/instanceview/VisualGroup.cpp
     ui/instanceview/VisualGroup.h
 )
@@ -1230,7 +1234,6 @@ qt_add_resources(LAUNCHER_RESOURCES
     resources/flat_white/flat_white.qrc
     resources/nova/nova.qrc
     resources/documents/documents.qrc
-    resources/shaders/shaders.qrc
     "${CMAKE_CURRENT_BINARY_DIR}/../${Launcher_Branding_LogoQRC}"
 )
 

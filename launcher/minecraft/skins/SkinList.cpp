@@ -207,13 +207,18 @@ bool SkinList::dropMimeData(const QMimeData* data,
     if (data->hasUrls()) {
         auto urls = data->urls();
         QStringList skinFiles;
+        QList<QUrl> remote;
         for (auto url : urls) {
-            // only local files may be dropped...
-            if (!url.isLocalFile())
-                continue;
-            skinFiles << url.toLocalFile();
+            if (url.isLocalFile()) {
+                skinFiles << url.toLocalFile();
+            } else if (url.scheme() == "http" || url.scheme() == "https") {
+                remote << url;
+            }
         }
         installSkins(skinFiles);
+        if (!remote.isEmpty()) {
+            emit remoteUrlsDropped(remote);
+        }
         return true;
     }
     return false;

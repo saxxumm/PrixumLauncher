@@ -20,8 +20,13 @@
 
 class BasePageProvider {
    public:
+    /// a title and the ids of the pages under it
+    using PageGroups = QList<std::pair<QString, QStringList>>;
+
     virtual QList<BasePage*> getPages() = 0;
     virtual QString dialogTitle() = 0;
+    /// titles for runs of pages in the page list, none by default
+    virtual PageGroups pageGroups() { return {}; }
 };
 
 class GenericPageProvider : public BasePageProvider {
@@ -41,7 +46,11 @@ class GenericPageProvider : public BasePageProvider {
     }
     QString dialogTitle() override { return m_dialogTitle; }
 
+    PageGroups pageGroups() override { return m_pageGroups ? m_pageGroups() : PageGroups(); }
+
     void setDialogTitle(const QString& title) { m_dialogTitle = title; }
+    /// called whenever a dialog opens, so the titles follow the language
+    void setPageGroups(std::function<PageGroups()> groups) { m_pageGroups = std::move(groups); }
     void addPageCreator(PageCreator page) { m_creators.append(page); }
 
     template <typename PageClass>
@@ -53,4 +62,5 @@ class GenericPageProvider : public BasePageProvider {
    private:
     QList<PageCreator> m_creators;
     QString m_dialogTitle;
+    std::function<PageGroups()> m_pageGroups;
 };

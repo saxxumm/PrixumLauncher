@@ -19,36 +19,34 @@
 #pragma once
 
 #include <QDialog>
+#include <QElapsedTimer>
 #include <QItemSelection>
-#include <QLabel>
-#include <QPixmap>
+#include <QTimer>
 
 #include "minecraft/auth/MinecraftAccount.h"
 #include "minecraft/skins/SkinList.h"
 #include "minecraft/skins/SkinModel.h"
-#include "ui/dialogs/skins/draw/SkinOpenGLWindow.h"
+#include "minecraft/skins/SkinSource.h"
+#include "ui/dialogs/skins/SkinGrid.h"
+
+class SkinPreviewWidget;
 
 namespace Ui {
 class SkinManageDialog;
 }
-class SkinManageDialog : public QDialog, public SkinProvider {
+class SkinManageDialog : public QDialog {
     Q_OBJECT
    public:
     explicit SkinManageDialog(QWidget* parent, MinecraftAccountPtr acct);
     ~SkinManageDialog() override;
-    void resizeEvent(QResizeEvent* event) override;
 
-    SkinModel* getSelectedSkin() override;
-    QHash<QString, QImage> capes() override;
+    SkinModel* getSelectedSkin();
+    QHash<QString, QImage> capes();
 
    public slots:
     void selectionChanged(const QItemSelection&, const QItemSelection&);
     void activated(QModelIndex);
-    void delayed_scroll(QModelIndex);
     void on_openDirBtn_clicked();
-    void on_fileBtn_clicked();
-    void on_urlBtn_clicked();
-    void on_userBtn_clicked();
     void accept() override;
     void on_capeCombo_currentIndexChanged(int index);
     void on_steveBtn_toggled(bool checked);
@@ -58,16 +56,39 @@ class SkinManageDialog : public QDialog, public SkinProvider {
     void on_action_Rename_Skin_triggered(bool checked);
     void on_action_Delete_Skin_triggered(bool checked);
 
+   protected:
+    void changeEvent(QEvent* event) override;
+    void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+
    private:
     void setupCapes();
+    void updatePreview();
+    void addFromFile();
+    void importFromLine();
+    void importSource(const SkinSource::Source& source);
+    bool importUrl(const QUrl& url, const QString& fileName);
+    bool importPlayer(const QString& player);
+    /// selects the skin as soon as the list has it, the folder watcher reports new files a moment later
+    void selectWhenListed(const QString& key);
+    /// offers a skin link from the clipboard, NameMC links mostly
+    void checkClipboard();
 
    private:
     MinecraftAccountPtr m_acct;
     Ui::SkinManageDialog* m_ui;
     SkinList m_list;
+    SkinGridModel m_grid;
+    SkinCardDelegate* m_cards = nullptr;
+    SkinPreviewWidget* m_preview = nullptr;
     QString m_selectedSkinKey;
     QHash<QString, QImage> m_capes;
     QHash<QString, int> m_capesIdx;
-    SkinOpenGLWindow* m_skinPreview = nullptr;
-    QLabel* m_skinPreviewLabel = nullptr;
+    QTimer m_animation;
+    QElapsedTimer m_clock;
+    SkinSource::Source m_clipboardSource;
+    QString m_dismissedClipboard;
+    /// downloads run in a nested event loop, a second one must not start meanwhile
+    bool m_importing = false;
 };

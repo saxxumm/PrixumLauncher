@@ -52,6 +52,8 @@ class BasePage {
     virtual bool apply() { return true; }
     virtual bool shouldDisplay() const { return true; }
     virtual QString helpPage() const { return QString(); }
+    /// one line under the page title, what the page is for
+    virtual QString description() const { return QString(); }
     void opened()
     {
         isOpened = true;

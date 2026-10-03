@@ -54,6 +54,7 @@ class ProxyPage : public QWidget, public BasePage {
     ~ProxyPage();
 
     QString displayName() const override { return tr("Proxy"); }
+    QString description() const override { return tr("A proxy for everything the launcher downloads."); }
     QIcon icon() const override { return QIcon::fromTheme("proxy"); }
     QString id() const override { return "proxy-settings"; }
     QString helpPage() const override { return "Proxy-settings"; }

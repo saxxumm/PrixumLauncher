@@ -453,6 +453,33 @@ const QList<std::pair<QString, QString>> s_assetShapes{
 };
 const QStringList s_assetColors{ "text", "textMuted", "textDisabled", "accent", "accentText" };
 
+// check boxes are drawn as switches: name, track color, knob color, knob position (0 left, 1 right)
+struct SwitchAsset {
+    QString name;
+    QString track;
+    QString knob;
+    double position;
+};
+const QList<SwitchAsset> s_switchAssets{
+    { "switch-off", "borderStrong", "knob", 0 },
+    { "switch-off-hover", "scrollHandleHover", "knob", 0 },
+    { "switch-on", "accent", "knob", 1 },
+    { "switch-on-hover", "accentHover", "knob", 1 },
+    { "switch-mixed", "accent", "knob", 0.5 },
+    { "switch-off-disabled", "border", "textDisabled", 0 },
+    { "switch-on-disabled", "textDisabled", "surface", 1 },
+};
+
+QString switchSvg(const Nova::Tokens& tokens, const SwitchAsset& asset)
+{
+    const double knobX = 10 + 16 * asset.position;
+    return QString(R"(<svg xmlns="http://www.w3.org/2000/svg" width="72" height="40" viewBox="0 0 36 20">)"
+                   R"(<rect x="1" y="1" width="34" height="18" rx="9" fill="%1"/>)"
+                   R"(<circle cx="%3" cy="10.6" r="7.2" fill="#000000" fill-opacity="0.18"/>)"
+                   R"(<circle cx="%3" cy="10" r="7" fill="%2"/></svg>)")
+        .arg(tokens.color(asset.track).name(QColor::HexRgb), tokens.color(asset.knob).name(QColor::HexRgb), QString::number(knobX));
+}
+
 // with an application stylesheet Qt wraps our style, it then lives on as a child of the wrapper
 bool novaStyleActive()
 {
@@ -475,6 +502,10 @@ void prepareAssets(const Nova::Tokens& tokens)
     for (const auto& [name, shape] : s_assetShapes) {
         shapes << name;
     }
+    for (const auto& asset : s_switchAssets) {
+        shapes << asset.name;
+        colorNames << tokens.color(asset.track).name(QColor::HexArgb) << tokens.color(asset.knob).name(QColor::HexArgb);
+    }
     const auto hash = QString::number(qHash(colorNames.join(',') + shapes.join(',')), 16);
     const QDir dir(QDir("cache/nova").absoluteFilePath(hash));
     const QString marker = dir.absoluteFilePath(".complete");
@@ -491,6 +522,11 @@ void prepareAssets(const Nova::Tokens& tokens)
                 if (auto res = FS::write(dir.absoluteFilePath(name + "-" + s_assetColors[i] + ".svg"), svg.toUtf8()); !res) {
                     themeWarningLog() << "Couldn't write Nova asset:" << res.error();
                 }
+            }
+        }
+        for (const auto& asset : s_switchAssets) {
+            if (auto res = FS::write(dir.absoluteFilePath(asset.name + ".svg"), switchSvg(tokens, asset).toUtf8()); !res) {
+                themeWarningLog() << "Couldn't write Nova asset:" << res.error();
             }
         }
         if (auto res = FS::write(marker, QByteArray()); !res) {

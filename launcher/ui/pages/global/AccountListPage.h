@@ -56,6 +56,7 @@ class AccountListPage : public QMainWindow, public BasePage {
     ~AccountListPage();
 
     QString displayName() const override { return tr("Accounts"); }
+    QString description() const override { return tr("The accounts you play with. Instances start with the default account."); }
     QIcon icon() const override
     {
         auto icon = QIcon::fromTheme("accounts");

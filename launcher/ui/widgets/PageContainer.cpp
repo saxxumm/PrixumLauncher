@@ -39,22 +39,36 @@
 #include "BuildConfig.h"
 #include "PageContainer_p.h"
 
+#include <QAbstractButton>
 #include <QDialogButtonBox>
 #include <QFrame>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
+#include <QPainter>
 #include <QPushButton>
+#include <QRegularExpression>
+#include <QScrollArea>
+#include <QShortcut>
 #include <QSortFilterProxyModel>
 #include <QStackedLayout>
+#include <QStackedWidget>
+#include <QStyle>
 #include <QStyledItemDelegate>
+#include <QTabWidget>
+#include <QTextDocumentFragment>
+#include <QTimer>
 #include <QUrl>
 #include <QVBoxLayout>
+#include <algorithm>
 #include <utility>
 
 #include "settings/SettingsObject.h"
 
+#include "ui/themes/NovaIcons.h"
+#include "ui/themes/NovaTheme.h"
 #include "ui/widgets/IconLabel.h"
 
 #include "Application.h"
@@ -64,19 +78,149 @@ class PageEntryFilterModel : public QSortFilterProxyModel {
    public:
     explicit PageEntryFilterModel(QObject* parent = nullptr) : QSortFilterProxyModel(parent) {}
 
+    /// the settings search, pages it turns down are hidden
+    std::function<bool(BasePage*)> matches;
+
+    BasePage* page(const QModelIndex& index) const
+    {
+        auto* const model = static_cast<PageModel*>(sourceModel());
+        return index.isValid() ? model->pages().at(mapToSource(index).row()) : nullptr;
+    }
+
    protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override
     {
-        const QString pattern = filterRegularExpression().pattern();
         auto* const model = static_cast<PageModel*>(sourceModel());
         auto* const page = model->pages().at(sourceRow);
         if (!page->shouldDisplay()) {
+            return false;
+        }
+        if (matches && !matches(page)) {
             return false;
         }
         // Regular contents check, then check page-filter.
         return QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
     }
 };
+
+namespace {
+
+/// draws a small title above the first page of each group
+class GroupedPageDelegate : public PageViewDelegate {
+   public:
+    GroupedPageDelegate(QObject* parent, std::function<QString(const QModelIndex&)> groupOf)
+        : PageViewDelegate(parent), m_groupOf(std::move(groupOf))
+    {}
+
+    QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override
+    {
+        QSize size = PageViewDelegate::sizeHint(option, index);
+        if (!groupTitle(index).isEmpty()) {
+            size.rheight() += titleHeight(option, index);
+        }
+        return size;
+    }
+
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+    {
+        const QString title = groupTitle(index);
+        if (title.isEmpty()) {
+            PageViewDelegate::paint(painter, option, index);
+            return;
+        }
+        const int height = titleHeight(option, index);
+        painter->save();
+        painter->setFont(titleFont(option));
+        painter->setPen(Nova::current().color("textMuted"));
+        const QRect titleRect(option.rect.left() + 10, option.rect.top(), option.rect.width() - 20, height - 6);
+        painter->drawText(titleRect, Qt::AlignLeft | Qt::AlignBottom, title.toUpper());
+        painter->restore();
+
+        QStyleOptionViewItem item = option;
+        item.rect.setTop(option.rect.top() + height);
+        PageViewDelegate::paint(painter, item, index);
+    }
+
+   private:
+    /// the title of the group this page starts, empty inside a group
+    QString groupTitle(const QModelIndex& index) const
+    {
+        const QString group = m_groupOf(index);
+        if (group.isEmpty()) {
+            return {};
+        }
+        const QModelIndex previous = index.siblingAtRow(index.row() - 1);
+        return previous.isValid() && m_groupOf(previous) == group ? QString() : group;
+    }
+
+    static QFont titleFont(const QStyleOptionViewItem& option)
+    {
+        QFont font = option.font;
+        font.setPointSizeF(font.pointSizeF() * 0.78);
+        font.setBold(true);
+        font.setLetterSpacing(QFont::PercentageSpacing, 108);
+        return font;
+    }
+
+    static int titleHeight(const QStyleOptionViewItem& option, const QModelIndex& index)
+    {
+        return QFontMetrics(titleFont(option)).height() + (index.row() == 0 ? 6 : 18) + 6;
+    }
+
+    std::function<QString(const QModelIndex&)> m_groupOf;
+};
+
+/// what a widget shows, without mnemonics and markup
+QString plainText(QString text)
+{
+    if (Qt::mightBeRichText(text)) {
+        text = QTextDocumentFragment::fromHtml(text).toPlainText();
+    }
+    QString result;
+    result.reserve(text.size());
+    for (qsizetype i = 0; i < text.size(); i++) {
+        if (text[i] == '&') {
+            if (i + 1 < text.size() && text[i + 1] == '&') {
+                result += '&';
+                i++;
+            }
+            continue;
+        }
+        result += text[i];
+    }
+    return result;
+}
+
+QString widgetText(const QWidget* widget)
+{
+    QString text;
+    if (auto* label = qobject_cast<const QLabel*>(widget)) {
+        text = label->text();
+    } else if (auto* button = qobject_cast<const QAbstractButton*>(widget)) {
+        text = button->text();
+    } else if (auto* box = qobject_cast<const QGroupBox*>(widget)) {
+        text = box->title();
+    } else if (auto* edit = qobject_cast<const QLineEdit*>(widget)) {
+        text = edit->placeholderText();
+    } else {
+        return {};
+    }
+    return plainText(text) + '\n' + plainText(widget->toolTip());
+}
+
+bool containsAll(const QString& text, const QStringList& words)
+{
+    return std::all_of(words.begin(), words.end(), [&text](const QString& word) { return text.contains(word, Qt::CaseInsensitive); });
+}
+
+void repolish(QWidget* widget)
+{
+    widget->style()->unpolish(widget);
+    widget->style()->polish(widget);
+    widget->update();
+}
+
+}  // namespace
 
 PageContainer::PageContainer(BasePageProvider* pageProvider, QString defaultId, QWidget* parent)
     : QWidget(parent)
@@ -179,10 +323,19 @@ void PageContainer::createUI()
     }
     m_header->setFont(headerLabelFont);
 
+    m_description = new QLabel();
+    m_description->setObjectName("pageDescription");
+    m_description->setWordWrap(true);
+    m_description->hide();
+
     auto* headerHLayout = new QHBoxLayout;
     const int leftMargin = APPLICATION->style()->pixelMetric(QStyle::PM_LayoutLeftMargin);
     headerHLayout->addSpacerItem(new QSpacerItem(leftMargin, 0, QSizePolicy::Fixed, QSizePolicy::Ignored));
-    headerHLayout->addWidget(m_header);
+    auto* titles = new QVBoxLayout;
+    titles->setSpacing(2);
+    titles->addWidget(m_header);
+    titles->addWidget(m_description);
+    headerHLayout->addLayout(titles);
     headerHLayout->setContentsMargins(6, 8, 0, 2);
 
     m_pageStack->setContentsMargins(0, 0, 0, 0);
@@ -202,6 +355,12 @@ void PageContainer::retranslate()
 {
     if (m_currentPage) {
         m_header->setText(m_currentPage->displayName());
+        m_description->setText(m_currentPage->description());
+    }
+    if (m_search) {
+        m_search->setPlaceholderText(tr("Search settings"));
+        m_noResults->setText(tr("Nothing found"));
+        m_searchIndex.clear();
     }
 
     for (auto* page : m_model->pages()) {
@@ -222,6 +381,7 @@ void PageContainer::addButtons(QLayout* buttons)
 void PageContainer::hidePageHeader()
 {
     m_header->hide();
+    m_description->hide();
     // the margins around the title would still leave a gap
     if (auto* item = m_layout->itemAtPosition(0, 1); item && item->layout()) {
         item->layout()->setContentsMargins(0, 0, 0, 0);
@@ -245,6 +405,154 @@ void PageContainer::setSidebarHeader(QWidget* header)
     m_sidebar = sidebar;
 }
 
+void PageContainer::useSettingsLayout(const BasePageProvider::PageGroups& groups)
+{
+    for (const auto& [title, ids] : groups) {
+        for (const auto& id : ids) {
+            m_pageGroups.insert(id, title);
+        }
+    }
+    if (!m_pageGroups.isEmpty()) {
+        m_pageList->setItemDelegate(new GroupedPageDelegate(m_pageList, [this](const QModelIndex& index) { return groupOf(index); }));
+    }
+
+    auto* header = new QWidget(this);
+    header->setObjectName("settingsSearchBox");
+    auto* layout = new QVBoxLayout(header);
+    layout->setContentsMargins(10, 10, 10, 4);
+    layout->setSpacing(6);
+    m_search = new QLineEdit(header);
+    m_search->setObjectName("settingsSearch");
+    m_search->setClearButtonEnabled(true);
+    m_search->addAction(NovaIcons::icon("search", NovaIcons::Tint::Muted), QLineEdit::LeadingPosition);
+    m_noResults = new QLabel(header);
+    m_noResults->setProperty("novaRole", "muted");
+    m_noResults->setAlignment(Qt::AlignCenter);
+    m_noResults->hide();
+    layout->addWidget(m_search);
+    layout->addWidget(m_noResults);
+    setSidebarHeader(header);
+    m_pageList->setMinimumWidth(210);
+    retranslate();
+
+    auto* proxy = static_cast<PageEntryFilterModel*>(m_proxyModel);
+    proxy->matches = [this](BasePage* page) { return pageMatches(page); };
+    connect(m_search, &QLineEdit::textChanged, this, &PageContainer::filterPages);
+    auto* find = new QShortcut(QKeySequence::Find, this);
+    connect(find, &QShortcut::activated, m_search, [this] {
+        m_search->setFocus();
+        m_search->selectAll();
+    });
+
+    if (m_currentPage) {
+        m_description->setText(m_currentPage->description());
+        m_description->setVisible(!m_description->text().isEmpty());
+    }
+}
+
+QString PageContainer::groupOf(const QModelIndex& index) const
+{
+    auto* page = static_cast<PageEntryFilterModel*>(m_proxyModel)->page(index);
+    return page ? m_pageGroups.value(page->id()) : QString();
+}
+
+QString PageContainer::searchText(BasePage* page) const
+{
+    if (auto it = m_searchIndex.constFind(page); it != m_searchIndex.constEnd()) {
+        return *it;
+    }
+    QStringList parts{ page->displayName(), page->description() };
+    if (auto* widget = dynamic_cast<QWidget*>(page)) {
+        for (auto* child : widget->findChildren<QWidget*>()) {
+            parts << widgetText(child);
+        }
+        for (auto* tabs : widget->findChildren<QTabWidget*>()) {
+            for (int i = 0; i < tabs->count(); i++) {
+                parts << plainText(tabs->tabText(i));
+            }
+        }
+    }
+    const QString text = parts.join('\n');
+    m_searchIndex.insert(page, text);
+    return text;
+}
+
+bool PageContainer::pageMatches(BasePage* page) const
+{
+    return m_searchWords.isEmpty() || containsAll(searchText(page), m_searchWords);
+}
+
+void PageContainer::filterPages(const QString& text)
+{
+    m_searchWords = text.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+    m_proxyModel->invalidate();
+    const bool empty = m_proxyModel->rowCount() == 0;
+    m_noResults->setVisible(empty);
+    if (empty) {
+        clearHighlights();
+        return;
+    }
+    // stay on the page while it matches, the first page that does otherwise
+    const QModelIndex current = m_currentPage ? m_proxyModel->mapFromSource(m_model->index(m_currentPage->listIndex)) : QModelIndex();
+    if (current.isValid()) {
+        m_pageList->setCurrentIndex(current);
+        highlightMatches();
+    } else {
+        m_pageList->setCurrentIndex(m_proxyModel->index(0, 0));
+    }
+}
+
+void PageContainer::clearHighlights()
+{
+    for (const auto& widget : std::as_const(m_highlighted)) {
+        if (widget) {
+            widget->setProperty("novaSearchMatch", false);
+            repolish(widget);
+        }
+    }
+    m_highlighted.clear();
+}
+
+void PageContainer::highlightMatches()
+{
+    clearHighlights();
+    auto* pageWidget = dynamic_cast<QWidget*>(m_currentPage);
+    if (m_searchWords.isEmpty() || !pageWidget) {
+        return;
+    }
+    QWidget* first = nullptr;
+    for (auto* widget : pageWidget->findChildren<QWidget*>()) {
+        if (widget->isHidden() || !containsAll(widgetText(widget), m_searchWords)) {
+            continue;
+        }
+        widget->setProperty("novaSearchMatch", true);
+        repolish(widget);
+        m_highlighted << widget;
+        if (!first) {
+            first = widget;
+        }
+    }
+    if (!first) {
+        return;
+    }
+    // open the tab that has the first match, then scroll it into view once the layout settled
+    for (QWidget* widget = first; widget && widget != pageWidget; widget = widget->parentWidget()) {
+        if (auto* stack = qobject_cast<QStackedWidget*>(widget->parentWidget())) {
+            if (auto* tabs = qobject_cast<QTabWidget*>(stack->parentWidget())) {
+                tabs->setCurrentWidget(widget);
+            }
+        }
+    }
+    QTimer::singleShot(0, first, [first] {
+        for (QWidget* parent = first->parentWidget(); parent; parent = parent->parentWidget()) {
+            if (auto* area = qobject_cast<QScrollArea*>(parent)) {
+                area->ensureWidgetVisible(first, 40, 80);
+                break;
+            }
+        }
+    });
+}
+
 void PageContainer::useSidebarStyle(bool sidebar)
 {
     m_pageList->setProperty("_kde_side_panel_view", sidebar);
@@ -263,10 +571,18 @@ void PageContainer::showPage(int row)
     if (m_currentPage) {
         m_pageStack->setCurrentIndex(m_currentPage->stackIndex);
         m_header->setText(m_currentPage->displayName());
+        if (m_search && !m_header->isHidden()) {
+            m_description->setText(m_currentPage->description());
+            m_description->setVisible(!m_description->text().isEmpty());
+        }
         m_currentPage->opened();
+        if (m_search) {
+            highlightMatches();
+        }
     } else {
         m_pageStack->setCurrentIndex(0);
         m_header->setText(QString());
+        m_description->hide();
     }
 }
 

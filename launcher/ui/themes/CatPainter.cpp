@@ -18,6 +18,7 @@
 
 #include "ui/themes/CatPainter.h"
 #include <QPixmap>
+#include <algorithm>
 #include "Application.h"
 #include "settings/SettingsObject.h"
 
@@ -59,7 +60,18 @@ void CatPainter::paint(QPainter* painter, const QRect& viewport)
         if (frame.height() < widHeight)
             widHeight = frame.height();
     }
-    auto pixmap = frame.scaled(widWidth, widHeight, aspectMode, Qt::SmoothTransformation);
+    // the size setting scales whatever the fit mode picked, the cat never grows past the list
+    const double size = std::clamp(APPLICATION->settings()->get("CatSize").toInt(), 10, 400) / 100.0;
+    QSize target = QSize(widWidth, widHeight);
+    if (aspectMode == Qt::KeepAspectRatio) {
+        target = frame.size().scaled(target, Qt::KeepAspectRatio);
+    }
+    target = (QSizeF(target) * size).toSize().boundedTo(viewport.size());
+    if (target.isEmpty()) {
+        painter->setOpacity(1.0);
+        return;
+    }
+    auto pixmap = frame.scaled(target, aspectMode, Qt::SmoothTransformation);
     QRect rectOfPixmap = pixmap.rect();
     rectOfPixmap.moveBottomRight(viewport.bottomRight());
     painter->drawPixmap(rectOfPixmap.topLeft(), pixmap);

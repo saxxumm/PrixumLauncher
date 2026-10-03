@@ -2,7 +2,7 @@
 #   cd packaging/arch && makepkg -si
 
 pkgname=prixumlauncher
-pkgver=12.3.0
+pkgver=12.4.0
 pkgrel=1
 pkgdesc="Minecraft launcher with a redesigned, fully themeable interface and render scaling (fork of Prism Launcher)"
 arch=('x86_64' 'aarch64')

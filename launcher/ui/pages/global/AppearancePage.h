@@ -52,6 +52,7 @@ class AppearancePage : public AppearanceWidget, public BasePage {
     explicit AppearancePage(QWidget* parent = nullptr) : AppearanceWidget(false, parent) { layout()->setContentsMargins(0, 0, 6, 0); }
 
     QString displayName() const override { return tr("Appearance"); }
+    QString description() const override { return tr("Theme, icons, a wallpaper behind the instances and the cat."); }
     QIcon icon() const override { return QIcon::fromTheme("appearance"); }
     QString id() const override { return "appearance-settings"; }
     QString helpPage() const override { return "Launcher-settings"; }

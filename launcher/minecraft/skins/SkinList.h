@@ -21,6 +21,7 @@
 #include <QAbstractListModel>
 #include <QDir>
 #include <QFileSystemWatcher>
+#include <QUrl>
 
 #include "QObjectPtr.h"
 #include "SkinModel.h"
@@ -65,6 +66,10 @@ class SkinList : public QAbstractListModel {
     SkinList(const SkinList&) = delete;
     // hide assign op
     SkinList& operator=(const SkinList&) = delete;
+
+   signals:
+    /// links dropped from a browser, the dialog downloads them
+    void remoteUrlsDropped(const QList<QUrl>& urls);
 
    protected slots:
     void directoryChanged(const QString& path);

@@ -36,8 +36,10 @@
 
 #pragma once
 
+#include <QHash>
 #include <QListView>
 #include <QModelIndex>
+#include <QPointer>
 #include <QWidget>
 
 #include "ui/pages/BasePageContainer.h"
@@ -97,9 +99,22 @@ class PageContainer : public QWidget, public BasePageContainer {
     /// puts a widget above the page list, the container takes ownership
     void setSidebarHeader(QWidget* header);
 
+    /// the settings window: a search over everything the pages say, titles over groups of pages and a line about
+    /// each page under its title
+    void useSettingsLayout(const BasePageProvider::PageGroups& groups);
+
    private:
     void createUI();
     void retranslate();
+
+    QString groupOf(const QModelIndex& index) const;
+    void filterPages(const QString& text);
+    /// the words of the search are all somewhere on the page
+    bool pageMatches(BasePage* page) const;
+    QString searchText(BasePage* page) const;
+    /// marks the widgets that match the search on the current page and scrolls to the first one
+    void highlightMatches();
+    void clearHighlights();
 
    public slots:
     void help();
@@ -121,5 +136,14 @@ class PageContainer : public QWidget, public BasePageContainer {
     QListView* m_pageList;
     QWidget* m_sidebar = nullptr;
     QLabel* m_header;
+    QLabel* m_description = nullptr;
     QGridLayout* m_layout;
+
+    // settings layout
+    QLineEdit* m_search = nullptr;
+    QLabel* m_noResults = nullptr;
+    QHash<QString, QString> m_pageGroups;
+    QStringList m_searchWords;
+    mutable QHash<BasePage*, QString> m_searchIndex;
+    QList<QPointer<QWidget>> m_highlighted;
 };

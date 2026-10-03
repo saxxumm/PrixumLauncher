@@ -51,7 +51,16 @@ class AppearanceWidget : public QWidget {
 
     void updateConsolePreview();
     void updateCatPreview();
+    /// the wallpaper with a few glass tiles on it, as the instance list would show it
+    void updateWallpaperPreview();
+    void chooseWallpaper();
+    /// the theme cards wrap into rows, the list is as tall as they need
+    void fitThemeCards();
 
+   protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
+   private:
     Ui::AppearanceWidget* m_ui;
     QTextCharFormat m_defaultFormat;
     bool m_themesOnly;
