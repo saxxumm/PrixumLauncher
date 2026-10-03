@@ -31,9 +31,11 @@
 #include <QListView>
 #include <QMenu>
 #include <QMimeDatabase>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QPushButton>
 #include <QScreen>
+#include <QTimer>
 #include <QUrl>
 
 #include "Application.h"
@@ -96,15 +98,18 @@ SkinManageDialog::SkinManageDialog(QWidget* parent, MinecraftAccountPtr acct)
     view->setDragDropMode(QAbstractItemView::DropOnly);
     view->setDefaultDropAction(Qt::CopyAction);
     view->installEventFilter(this);
+    // clicks on the card in front open the file picker, see eventFilter
+    view->viewport()->installEventFilter(this);
 
     connect(view, &QAbstractItemView::doubleClicked, this, &SkinManageDialog::activated);
-    // a single click on the card in front opens the file picker
-    connect(view, &QAbstractItemView::clicked, this, [this](const QModelIndex& index) {
-        if (index.data(SkinGridModel::AddCardRole).toBool()) {
-            addFromFile();
+    connect(view->selectionModel(), &QItemSelectionModel::selectionChanged, this, &SkinManageDialog::selectionChanged);
+    // the folder watcher reloads the whole list whenever a file changes, which drops the selection
+    connect(&m_grid, &QAbstractItemModel::modelReset, this, [this] {
+        const int row = m_list.getSkinIndex(m_selectedSkinKey);
+        if (row >= 0 && !m_ui->listView->selectionModel()->isSelected(m_grid.cardOf(row))) {
+            m_ui->listView->setCurrentIndex(m_grid.cardOf(row));
         }
     });
-    connect(view->selectionModel(), &QItemSelectionModel::selectionChanged, this, &SkinManageDialog::selectionChanged);
     connect(view, &QListView::customContextMenuRequested, this, &SkinManageDialog::show_context_menu);
     connect(&m_list, &SkinList::remoteUrlsDropped, this, [this](const QList<QUrl>& urls) {
         for (const auto& url : urls) {
@@ -197,11 +202,14 @@ void SkinManageDialog::activated(QModelIndex index)
 
 void SkinManageDialog::selectionChanged(const QItemSelection& selected, [[maybe_unused]] const QItemSelection& deselected)
 {
-    if (selected.empty()) {
-        return;
+    // the add card can not be selected, the range of a click on it has no indexes
+    QString key;
+    for (const auto& index : selected.indexes()) {
+        key = index.data(Qt::UserRole).toString();
+        if (!key.isEmpty()) {
+            break;
+        }
     }
-
-    QString key = selected.first().indexes().first().data(Qt::UserRole).toString();
     if (key.isEmpty()) {
         return;
     }
@@ -494,6 +502,21 @@ bool SkinManageDialog::eventFilter(QObject* obj, QEvent* ev)
         if (key == Qt::Key_Return || key == Qt::Key_Enter) {
             importFromLine();
             return true;
+        }
+    }
+    // the add card takes its clicks before the view, which would clear the selected skin on the press
+    if (obj == m_ui->listView->viewport()) {
+        const auto type = ev->type();
+        if (type == QEvent::MouseButtonPress || type == QEvent::MouseButtonRelease || type == QEvent::MouseButtonDblClick) {
+            auto* mouse = static_cast<QMouseEvent*>(ev);
+            const QModelIndex index = m_ui->listView->indexAt(mouse->position().toPoint());
+            if (index.isValid() && index.data(SkinGridModel::AddCardRole).toBool()) {
+                if (type == QEvent::MouseButtonRelease && mouse->button() == Qt::LeftButton) {
+                    // after the release returns, a modal file dialog would otherwise swallow the end of the click
+                    QTimer::singleShot(0, this, &SkinManageDialog::addFromFile);
+                }
+                return true;
+            }
         }
     }
     if (obj == m_ui->listView) {
